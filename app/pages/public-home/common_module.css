@@ -1,0 +1,55 @@
+@import "../../styles/global.css";
+
+/* SCR-12: Public Home (Unauthenticated) styles */
+.scr12-topbar{
+  position:fixed;
+  top:0;left:0;right:0;
+  height:var(--topbar-height);
+  background:var(--color-surface);
+  border-bottom:1px solid var(--muted-ghost);
+  display:flex;
+  align-items:center;
+  gap:16px;
+  padding:0 24px;
+  z-index:50;
+}
+.scr12-topbar .brand{ color:var(--color-primary); font-weight:700; font-size:18px; }
+.scr12-topbar .search{ flex:1; max-width:640px; margin-left:12px; }
+.scr12-topbar .auth{ display:flex; gap:12px; align-items:center }
+
+/* Page grid: main + right column */
+.scr12-root{ padding-top:var(--topbar-height); background:var(--color-bg); min-height:100vh; }
+.scr12-main{ display:grid; grid-template-columns: 1fr 360px; gap:32px; align-items:start; max-width:var(--max-content-width); margin-inline:auto; padding:32px; }
+
+/* Content column */
+.scr12-hero{ background:var(--color-surface); border-radius:var(--radius-md); padding:24px; box-shadow:var(--shadow-1); border:1px solid var(--muted-ghost); }
+.scr12-hero .title{ font-size:22px; font-weight:600; color:#111827; margin-bottom:8px; }
+.scr12-hero .desc{ color:var(--color-muted); margin-bottom:16px; }
+.scr12-hero .ctas{ display:flex; gap:12px; }
+
+/* Article list */
+.scr12-article-list{ margin-top:24px; display:flex; flex-direction:column; gap:16px; }
+.scr12-article-row{ display:flex; align-items:center; gap:16px; background:var(--color-surface); padding:12px; border-radius:10px; border:1px solid var(--muted-ghost); box-shadow:var(--shadow-1); }
+.scr12-article-row .thumb{ width:64px; height:64px; border-radius:8px; background:#F3F6F9; flex:0 0 64px; }
+.scr12-article-row .meta{ flex:1; }
+.scr12-article-row .meta .title{ font-weight:600; color:#111827; }
+.scr12-article-row .meta .excerpt{ color:var(--color-muted); font-size:14px; margin-top:6px; }
+.scr12-article-row .badge{ padding:6px 12px; border-radius:14px; background:var(--color-success); color:#fff; font-size:12px; }
+
+/* Right column widgets */
+.scr12-side{ display:flex; flex-direction:column; gap:16px; }
+.scr12-side .widget{ background:var(--color-surface); border-radius:var(--radius-md); padding:16px; border:1px solid var(--muted-ghost); box-shadow:var(--shadow-1); }
+.scr12-side .widget .title{ font-weight:600; color:#111827; margin-bottom:8px; }
+.scr12-side .cta{ background:var(--color-accent); color:#fff; padding:10px 14px; border-radius:8px; display:inline-block; font-weight:600; }
+
+/* Footer note small */
+.scr12-footer-note{ color:var(--color-muted); font-size:12px; margin-top:8px; }
+
+/* Responsive: collapse to single column on small screens */
+@media (max-width: 992px){
+  .scr12-main{ grid-template-columns: 1fr; padding:20px; }
+  .scr12-side{ order:2 }
+  .scr12-hero{ order:1 }
+  .scr12-article-list{ order:3 }
+  .scr12-topbar .search{ display:none }
+}

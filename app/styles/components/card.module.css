@@ -1,0 +1,58 @@
+.card{
+  background:var(--color-surface);
+  border-radius:var(--radius-md);
+  box-shadow:var(--shadow-1);
+  border:1px solid var(--muted-ghost);
+  padding:var(--space-4);
+  display:flex;
+  gap:var(--space-4);
+  align-items:flex-start;
+}
+
+.thumbnail{
+  width:64px;
+  height:64px;
+  border-radius:6px;
+  background:#F3F6F9;
+  flex-shrink:0;
+}
+
+.content{flex:1;min-width:0}
+
+.title{
+  font-size:18px;
+  font-weight:600;
+  color:var(--color-primary);
+  margin:0;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.meta{
+  font-size:12px;
+  color:var(--color-muted);
+  margin-top:6px;
+}
+
+.body{
+  margin-top:8px;
+  color:#111827;
+  font-size:14px;
+  line-height:1.4;
+}
+
+/* Badge */
+.badge{
+  display:inline-block;
+  padding:4px 10px;
+  border-radius:999px;
+  font-size:12px;
+  color:#fff;
+  font-weight:600;
+}
+
+/* Status variants */
+.pending{background:var(--color-warning)}
+.published{background:var(--color-success)}
+.declined{background:var(--color-danger)}
