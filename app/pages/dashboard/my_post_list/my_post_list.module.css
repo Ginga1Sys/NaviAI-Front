@@ -1,0 +1,296 @@
+.loading {
+  padding: 24px;
+  text-align: center;
+  color: #444;
+}
+
+.empty {
+  padding: 24px;
+  text-align: center;
+  color: #666;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.card {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #e6e6e6;
+  border-radius: 6px;
+  align-items: center;
+}
+
+.thumb {
+  width: 72px;
+  height: 72px;
+  background: #f2f2f2;
+  display: inline-block;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.meta {
+  color: #888;
+  font-size: 12px;
+}
+
+.title {
+  font-weight: 600;
+  margin: 0 0 6px 0;
+}
+
+/* 
+  Re-implementing layout from dashboard/common_module.css 
+  since we cannot import non-module CSS in component files in Next.js standard Pages router setup 
+  without global config changes.
+*/
+
+.container {
+  display: grid;
+  grid-template-columns: 240px 1fr 320px;
+  gap: 24px;
+  align-items: start;
+  padding: 24px;
+  max-width: var(--max-content-width, 1200px);
+  margin: 0 auto;
+}
+
+/* Responsive adjustment */
+@media (max-width: 1024px) {
+  .container {
+    grid-template-columns: 200px 1fr;
+  }
+  .right {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    grid-template-columns: 1fr;
+  }
+  .leftNav {
+    display: none; /* Usually would become a drawer or top menu */
+  }
+}
+
+/* Layout Columns */
+.leftNav {
+  grid-column: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.main {
+  grid-column: 2;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.right {
+  grid-column: 3;
+}
+
+/* Dashboard Navigation */
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  color: var(--color-muted, #6B7280);
+  text-decoration: none;
+  font-weight: 500;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.navItem:hover {
+  background-color: var(--muted-ghost, #F3F4F6);
+  color: var(--color-primary, #0B3D91);
+}
+
+.navItemActive {
+  background-color: #E0E7FF; /* Light primary */
+  color: var(--color-primary, #0B3D91);
+}
+
+/* Page Header Area */
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.pageTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text, #111827);
+  margin: 0;
+}
+
+/* Filter Tabs */
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--muted-ghost, #E6E9EE);
+  margin-bottom: 16px;
+}
+
+.tab {
+  padding: 8px 16px;
+  border-bottom: 2px solid transparent;
+  color: var(--color-muted, #6B7280);
+  font-weight: 500;
+  cursor: pointer;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+}
+
+.tabActive {
+  color: var(--color-primary, #0B3D91);
+  border-bottom-color: var(--color-primary, #0B3D91);
+}
+
+/* Post List */
+.postList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.postCard {
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--muted-ghost, #E6E9EE);
+  padding: 16px;
+  border-radius: 12px;
+  transition: box-shadow 0.2s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.postCard:hover {
+  box-shadow: var(--shadow-1, 0 1px 3px rgba(0,0,0,0.1));
+}
+
+.postContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.postTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  text-decoration: none;
+}
+
+.postTitle:hover {
+  text-decoration: underline;
+}
+
+.postMeta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.875rem;
+  color: var(--color-muted, #6B7280);
+}
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badgePublished {
+  background-color: #D1FAE5; /* Green 100 */
+  color: #065F46; /* Green 800 */
+}
+
+.badgeDraft {
+  background-color: #F3F4F6; /* Gray 100 */
+  color: #374151; /* Gray 700 */
+}
+
+.badgeReview {
+  background-color: #FFEDD5; /* Orange 100 */
+  color: #9A3412; /* Orange 800 */
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.iconBtn {
+  background: transparent;
+  border: none;
+  color: var(--color-muted, #6B7280);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+}
+
+.iconBtn:hover {
+  background-color: var(--muted-ghost, #F3F4F6);
+  color: #111827;
+}
+
+/* Sidebar Widgets */
+.sidebarCard {
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--muted-ghost, #E6E9EE);
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+
+.sidebarTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #111827;
+}
+
+.statList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.statItem {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--muted-ghost, #E6E9EE);
+  font-size: 0.875rem;
+}
+
+.statItem:last-child {
+  border-bottom: none;
+}
+
+.statValue {
+  font-weight: 600;
+  color: #111827;
+}
