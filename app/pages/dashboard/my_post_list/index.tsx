@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import styles from './my_post_list.module.css'
 import { getMockPosts, Post } from '../../../lib/mockPosts'
+// import { getPosts } from '../../../lib/postsApi' // APIを呼び出す場合はこちらを有効化
 import MyPostList from '../../../components/MyPostList'
 import Link from 'next/link'
 
@@ -22,6 +23,22 @@ export default function MyPostListPage() {
       mounted = false
     }
   }, [])
+
+  /*
+  // APIを呼び出す場合のuseEffectのコード例
+  useEffect(() => {
+    let mounted = true
+    // getPosts() を呼び出すように変更
+    getPosts().then((data) => {
+      if (!mounted) return
+      setPosts(data)
+      setLoading(false)
+    })
+    return () => {
+      mounted = false
+    }
+  }, [])
+  */
 
   const filteredPosts = posts?.filter(post => {
     if (filter === 'すべて') return true;

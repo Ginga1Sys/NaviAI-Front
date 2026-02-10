@@ -46,3 +46,28 @@ export async function getMockPosts(): Promise<Post[]> {
     },
   ]
 }
+
+/*
+// APIを呼び出す場合のコード例
+
+import { Post } from './mockPosts'; // Post型は再利用します
+
+const API_BASE_URL = 'https://api.example.com'; // APIのベースURLに置き換えてください
+
+export async function getPosts(): Promise<Post[]> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/posts`); // '/posts' は実際のAPIエンドポイントに置き換えてください
+
+    if (!response.ok) {
+      throw new Error('APIからのデータ取得に失敗しました');
+    }
+
+    const data: Post[] = await response.json();
+    return data;
+  } catch (error) {
+    console.error(error);
+    // エラー発生時は空の配列を返すか、再度エラーをスローするかを検討します
+    return [];
+  }
+}
+*/
