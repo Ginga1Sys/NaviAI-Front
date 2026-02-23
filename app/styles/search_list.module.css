@@ -1,0 +1,297 @@
+/* ──────────────────────────────────────────────
+   検索結果一覧画面 (SCR-04) 専用スタイル
+   ダッシュボード (dashboard.module.css) のレイアウトを継承しつつ
+   検索結果固有のスタイルを定義する
+────────────────────────────────────────────── */
+
+/* ── ページヘッダー ── */
+.pageHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pageTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text, #111827);
+  margin: 0;
+}
+
+.queryLabel {
+  font-size: 0.95rem;
+  color: var(--color-muted, #6B7280);
+  margin: 0;
+}
+
+.queryText {
+  font-weight: 600;
+  color: var(--color-primary, #0B3D91);
+}
+
+/* ── 検索バー ── */
+.searchBarForm {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.searchInput {
+  flex: 1;
+  height: 42px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--muted-ghost, #E6E9EE);
+  font-size: 14px;
+  background: var(--color-surface, #fff);
+  color: #111827;
+  transition: border-color 0.15s;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--color-primary, #0B3D91);
+  box-shadow: 0 0 0 3px rgba(11, 61, 145, 0.12);
+}
+
+.searchButton {
+  height: 42px;
+  padding: 0 20px;
+  border-radius: 8px;
+  border: none;
+  background: var(--color-primary, #0B3D91);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.searchButton:hover {
+  background: #083180;
+}
+
+/* ── 検索結果リスト ── */
+.resultList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── 結果カード ── */
+.resultCard {
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--muted-ghost, #E6E9EE);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: var(--shadow-1, 0 1px 3px rgba(2,6,23,0.06));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+
+.resultCard:hover {
+  box-shadow: var(--shadow-2, 0 6px 20px rgba(11,61,145,0.08));
+  border-color: var(--color-primary, #0B3D91);
+}
+
+.resultCardLink {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-primary, #0B3D91);
+  text-decoration: none;
+  line-height: 1.4;
+}
+
+.resultCardLink:hover {
+  text-decoration: underline;
+}
+
+.resultCardExcerpt {
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.6;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.resultCardMeta {
+  font-size: 12px;
+  color: var(--color-muted, #6B7280);
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.tagChipList {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.tagChip {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 20px;
+  background: rgba(11, 61, 145, 0.08);
+  color: var(--color-primary, #0B3D91);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: default;
+}
+
+/* ── ローディング / エラー / 空結果 ── */
+.loadingText {
+  font-size: 14px;
+  color: var(--color-muted, #6B7280);
+  margin: 0;
+  padding: 24px 0;
+  text-align: center;
+}
+
+.errorText {
+  font-size: 13px;
+  color: var(--color-danger, #EF4444);
+  margin: 0;
+  padding: 24px 0;
+  text-align: center;
+}
+
+.emptyText {
+  font-size: 14px;
+  color: var(--color-muted, #6B7280);
+  margin: 0;
+  padding: 40px 0;
+  text-align: center;
+}
+
+/* ── ページネーション ── */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.pageButton {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 6px;
+  border: 1px solid var(--muted-ghost, #E6E9EE);
+  background: var(--color-surface, #fff);
+  color: #374151;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.pageButton:hover:not(:disabled) {
+  background: var(--color-primary, #0B3D91);
+  color: #fff;
+  border-color: var(--color-primary, #0B3D91);
+}
+
+.pageButtonActive {
+  background: var(--color-primary, #0B3D91);
+  color: #fff;
+  border-color: var(--color-primary, #0B3D91);
+}
+
+.pageButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pageInfo {
+  font-size: 13px;
+  color: var(--color-muted, #6B7280);
+}
+
+/* ── 右サイドバー (SearchSidebar) ── */
+.sidebarCard {
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--muted-ghost, #E6E9EE);
+  padding: 16px 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.sidebarTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0 0 12px;
+  color: #111827;
+}
+
+.totalCount {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-primary, #0B3D91);
+  margin: 0;
+  line-height: 1.1;
+}
+
+.totalCountUnit {
+  font-size: 1rem;
+  font-weight: 400;
+  color: #374151;
+}
+
+.tagList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tagItem {
+  display: flex;
+}
+
+.tagButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--muted-ghost, #E6E9EE);
+  background: var(--color-surface, #fff);
+  color: #374151;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.tagButton:hover {
+  background: rgba(11, 61, 145, 0.08);
+  border-color: var(--color-primary, #0B3D91);
+  color: var(--color-primary, #0B3D91);
+}
+
+.tagButtonSelected {
+  background: var(--color-primary, #0B3D91);
+  border-color: var(--color-primary, #0B3D91);
+  color: #fff;
+}
+
+.tagButtonSelected:hover {
+  background: #083180;
+  color: #fff;
+}
+
+.tagCount {
+  font-size: 10px;
+  opacity: 0.75;
+}

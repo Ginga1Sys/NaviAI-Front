@@ -16,6 +16,9 @@
     - QuickSearch.module.css: `QuickSearch` 専用のモジュール CSS。
     - QuickTags.tsx: タグ一覧コンポーネント（`GET /api/v1/tags` を呼び出してタグチップを表示、クリックでタグ検索ページへ遷移）。
     - QuickTags.module.css: `QuickTags` 専用のモジュール CSS。
+    - SearchResultView.tsx: 検索結果画面（SCR-04）のメインクライアントコンポーネント（`useSearchParams` でクエリを受け取り、`GET /api/v1/knowledge` および `GET /api/v1/tags` を呼び出して検索結果と右サイドバーを統合したレイアウトを提供）。
+    - SearchResultList.tsx: 検索結果の記事一覧を表示するコンポーネント（カード形式でタイトル・タグ・投稿者・投稿日を表示、ページネーション付き）。
+    - SearchSidebar.tsx: 検索結果画面の右サイドバーコンポーネント（結果件数表示・タグ絞り込みボタン一覧）。
   - lib/
     - auth.ts: フロントエンドの認証ユーティリティ（トークン保存/取得、ログインAPI呼び出しのラッパー）。
     - fetcher.ts: 汎用 fetch ユーティリティ（Authorization ヘッダー自動付与、非 OK レスポンス例外化）。
@@ -27,6 +30,8 @@
     - page.tsx: `/login` 用のページ。`LoginForm` を組み合わせてログイン画面を構築。
   - my_post_list/
     - page.tsx: マイ投稿一覧ページのエントリ。`MyPostList` を使用してユーザー投稿を表示。
+  - search_list/
+    - page.tsx: `/search_list` 用の検索結果一覧ページ（SCR-04）。`CommonHeader` と `SearchResultView`（`<Suspense>` でラップ）をレンダリング。URL クエリパラメータ: `q`（キーワード）、`tags`（カンマ区切りタグ）、`page`（ページ番号）。
   - pages/
     - dashboard/
       - common_header.html: ダッシュボード共通の静的ヘッダー（HTMLスニペット）。
@@ -49,6 +54,7 @@
     - tokens.css: デザイントークン（色、スペーシング、フォントサイズ等）。
     - dashboard.module.css: ダッシュボード画面のレイアウト・統計ウィジェット・記事カード等のモジュール CSS。
       - 追加/更新されたクラス: `.leftBrand`（サイドバー上部ブランド）、`.sidebarToggleButton`（トグル）、`.leftNavCollapsed`（折りたたみ状態）、`.newPostButton`（サイドバー内の新規投稿ボタン）。
+    - search_list.module.css: 検索結果一覧画面（SCR-04）固有のモジュール CSS（検索バー・結果カード・ページネーション・右サイドバーのスタイル）。
     - components/: コンポーネント単位の CSS モジュールや共通スタイルを格納。
       - card.module.css: カードUI用のモジュールCSS。
       - header.module.css: ヘッダー用のモジュールCSS。
@@ -57,4 +63,4 @@
 - コンポーネント実装は `app/components` 配下で再利用可能な UI とロジックを分離しており、ページは `app/*/page.tsx` でルーティングに対応しています。
 - `lib` は API 呼び出しや認証などのユーティリティ集で、テストや Storybook 的な用途で `mockPosts.ts` などのモックが用意されています。
 
-生成日時: 2026-02-23（ダッシュボード画面実装およびヘッダー/サイドバー修正に伴い更新）
+生成日時: 2026-02-23（検索結果一覧画面（SCR-04）実装に伴い更新）
