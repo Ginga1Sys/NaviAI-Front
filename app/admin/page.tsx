@@ -1,23 +1,107 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { AdminSidebar } from "./components/AdminSidebar"
 import { PreviewPanel } from "./components/PreviewPanel"
 import { RejectModal } from "./components/RejectModal"
 import { ReviewList } from "./components/ReviewList"
-import { auditLogs, quickStats, reviewQueue } from "./mockData"
+import { auditLogs as mockAuditLogs, quickStats as mockQuickStats, reviewQueue as mockReviewQueue } from "./mockData"
+import { createScr10AdminApiClient } from "./lib/scr10AdminApi"
 import styles from "./styles.module.css"
 
 export default function AdminPanelPage() {
-  const [items, setItems] = useState(reviewQueue)
-  const [activeId, setActiveId] = useState(reviewQueue[0]?.id)
+  const [items, setItems] = useState(mockReviewQueue)
+  const [activeId, setActiveId] = useState(mockReviewQueue[0]?.id)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [rejectModalItemId, setRejectModalItemId] = useState<string | null>(null)
   const [rejectReason, setRejectReason] = useState("")
+  const [stats, setStats] = useState(mockQuickStats)
+  const [auditLogs, setAuditLogs] = useState(mockAuditLogs)
+
+  const api = useMemo(
+    () =>
+      createScr10AdminApiClient({
+        getAccessToken: () =>
+          typeof window === "undefined" ? null : window.localStorage.getItem("scr10_admin_token"),
+      }),
+    [],
+  )
 
   const activeItem = useMemo(() => items.find((item) => item.id === activeId), [items, activeId])
 
   const pendingCount = selectedIds.size
+
+  useEffect(() => {
+    let cancelled = false
+
+    ;(async () => {
+      try {
+        const [knowledgeRes, statsRes, auditRes] = await Promise.all([
+          api.adminKnowledgeList({ status: "pending", per_page: 50, sort: "-submitted_at" }),
+          api.adminKnowledgeStats(),
+          api.adminAuditLogsList({ per_page: 5, sort: "-created_at" }),
+        ])
+
+        if (cancelled) return
+
+        const nextItems = knowledgeRes.data.map((k) => ({
+          id: k.id,
+          title: k.title,
+          summary: k.summary ?? "",
+          author: k.author?.name ?? "",
+          submittedAt: k.submitted_at ?? new Date().toISOString(),
+          status: k.status === "pending" || k.status === "published" || k.status === "declined" ? k.status : "pending",
+          category: k.category ?? "",
+          markdownPreview: "",
+        }))
+
+        setItems(nextItems)
+        setActiveId(nextItems[0]?.id)
+        setStats(statsRes.data)
+        setAuditLogs(
+          auditRes.data.map((l) => ({
+            id: l.id,
+            action: l.action,
+            actor: l.actor?.name ?? "",
+            timestamp: new Date(l.created_at).toLocaleString("ja-JP"),
+          })),
+        )
+      } catch (e) {
+        // 認証未設定やCORSなどで失敗した場合は、現状のモック表示を維持する
+        console.warn("SCR-10 API load failed; falling back to mock data", e)
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [api])
+
+  useEffect(() => {
+    let cancelled = false
+    const targetId = activeId
+    if (!targetId) return
+    const current = items.find((it) => it.id === targetId)
+    if (!current) return
+    if (current.markdownPreview) return
+
+    ;(async () => {
+      try {
+        const detail = await api.adminKnowledgeGetDetail(targetId)
+        if (cancelled) return
+        setItems((prev) =>
+          prev.map((it) => (it.id === targetId ? { ...it, markdownPreview: detail.data.body } : it)),
+        )
+      } catch (e) {
+        // プレビュー取得に失敗しても一覧は表示できるので握りつぶす
+        console.warn("SCR-10 API detail load failed", e)
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [activeId, api, items])
 
   function handleToggleSelect(itemId: string) {
     setSelectedIds((prev) => {
@@ -39,8 +123,13 @@ export default function AdminPanelPage() {
     setSelectedIds(new Set())
   }
 
-  function handleApprove(id: string) {
-    applyStatus(new Set([id]), "published")
+  async function handleApprove(id: string) {
+    try {
+      await api.adminKnowledgeApprove(id)
+      applyStatus(new Set([id]), "published")
+    } catch (e) {
+      console.error("approve failed", e)
+    }
   }
 
   function handleReject(id: string) {
@@ -48,8 +137,14 @@ export default function AdminPanelPage() {
     setRejectReason("")
   }
 
-  function handleBulkApprove() {
-    applyStatus(selectedIds, "published")
+  async function handleBulkApprove() {
+    if (!selectedIds.size) return
+    try {
+      await api.adminKnowledgeBulkAction({ action: "approve", ids: Array.from(selectedIds) })
+      applyStatus(selectedIds, "published")
+    } catch (e) {
+      console.error("bulk approve failed", e)
+    }
   }
 
   function handleBulkReject() {
@@ -58,12 +153,27 @@ export default function AdminPanelPage() {
     setRejectReason("")
   }
 
-  function confirmReject() {
+  async function confirmReject() {
     if (!rejectModalItemId) return
+    const reason = rejectReason.trim()
+    if (!reason) return
+
     const targetIds = selectedIds.size ? selectedIds : new Set([rejectModalItemId])
-    applyStatus(targetIds, "declined")
-    setRejectModalItemId(null)
-    setRejectReason("")
+    const ids = Array.from(targetIds)
+
+    try {
+      if (ids.length > 1) {
+        await api.adminKnowledgeBulkAction({ action: "reject", ids, reason })
+      } else {
+        await api.adminKnowledgeReject(ids[0], { reason })
+      }
+
+      applyStatus(targetIds, "declined")
+      setRejectModalItemId(null)
+      setRejectReason("")
+    } catch (e) {
+      console.error("reject failed", e)
+    }
   }
 
   return (
@@ -147,7 +257,7 @@ export default function AdminPanelPage() {
           </div>
         </main>
 
-        <AdminSidebar stats={quickStats} auditLogs={auditLogs} />
+        <AdminSidebar stats={stats} auditLogs={auditLogs} />
       </div>
 
       <RejectModal
