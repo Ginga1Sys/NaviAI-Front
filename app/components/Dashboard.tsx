@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react"
 import Link from "next/link"
 import QuickTags from "./QuickTags"
+import Sidebar from "./Sidebar"
 import fetcher from "../lib/fetcher"
 import styles from "../styles/dashboard.module.css"
 
@@ -122,15 +123,11 @@ export default function Dashboard() {
   return (
     <div className={styles.container}>
 
-      {/* ── 左ナビ ── */}
-      <nav className={styles.leftNav} aria-label="サイドナビゲーション">
-        <Link href="/dashboard" className={`${styles.navItem} ${styles.navItemActive}`}>ダッシュボード</Link>
-        <Link href="/dashboard/knowledge" className={styles.navItem}>ナレッジ</Link>
-        <Link href="/dashboard/review" className={styles.navItem}>承認</Link>
-        <Link href="/my_post_list" className={styles.navItem}>投稿一覧</Link>
-      </nav>
+      {/* ── 左ナビ（共通 Sidebar コンポーネント） ── */}
+      <Sidebar activeItem="dashboard" />
 
-      {/* ── メインコンテンツ ── */}
+      {/* ── コンテンツエリア（main + 右サイドバー） ── */}
+      <div className={styles.contentArea}>
       <main className={styles.main} id="main-content">
         <div className={styles.pageHeader}>
           <h1 className={styles.pageTitle}>ダッシュボード</h1>
@@ -217,6 +214,7 @@ export default function Dashboard() {
         </div>
 
       </aside>
+      </div>
     </div>
   )
 }

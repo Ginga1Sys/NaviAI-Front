@@ -53,19 +53,25 @@
 */
 
 .container {
+  display: flex;
+  align-items: stretch;
+  min-height: calc(100vh - var(--topbar-height, 64px));
+}
+
+.contentArea {
+  flex: 1;
   display: grid;
-  grid-template-columns: 240px 1fr 320px;
+  grid-template-columns: 1fr 320px;
   gap: 24px;
   align-items: start;
   padding: 24px;
-  max-width: var(--max-content-width, 1200px);
-  margin: 0 auto;
+  min-width: 0;
 }
 
 /* Responsive adjustment */
 @media (max-width: 1024px) {
-  .container {
-    grid-template-columns: 200px 1fr;
+  .contentArea {
+    grid-template-columns: 1fr;
   }
   .right {
     display: none;
@@ -73,11 +79,8 @@
 }
 
 @media (max-width: 768px) {
-  .container {
-    grid-template-columns: 1fr;
-  }
   .leftNav {
-    display: none; /* Usually would become a drawer or top menu */
+    display: none;
   }
 }
 
@@ -90,7 +93,6 @@
 }
 
 .main {
-  grid-column: 2;
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -98,7 +100,7 @@
 }
 
 .right {
-  grid-column: 3;
+  min-width: 0;
 }
 
 /* Dashboard Navigation */
