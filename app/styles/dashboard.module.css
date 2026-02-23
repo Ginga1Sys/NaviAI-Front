@@ -1,0 +1,245 @@
+/* ──────────────────────────────────────────────
+   3-column grid layout (投稿一覧と共通構造)
+────────────────────────────────────────────── */
+.container {
+  display: grid;
+  grid-template-columns: 240px 1fr 320px;
+  gap: 24px;
+  align-items: start;
+  padding: 24px;
+  max-width: var(--max-content-width, 1200px);
+  margin: 0 auto;
+}
+
+@media (max-width: 1024px) {
+  .container {
+    grid-template-columns: 200px 1fr;
+  }
+  .right {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    grid-template-columns: 1fr;
+  }
+  .leftNav {
+    display: none;
+  }
+}
+
+/* ──────────────────────────────────────────────
+   Left nav (投稿一覧と共通スタイル)
+────────────────────────────────────────────── */
+.leftNav {
+  grid-column: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  color: var(--color-muted, #6B7280);
+  text-decoration: none;
+  font-weight: 500;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.navItem:hover {
+  background-color: var(--muted-ghost, #F3F4F6);
+  color: var(--color-primary, #0B3D91);
+}
+
+.navItemActive {
+  background-color: #E0E7FF;
+  color: var(--color-primary, #0B3D91);
+}
+
+/* ──────────────────────────────────────────────
+   Main content
+────────────────────────────────────────────── */
+.main {
+  grid-column: 2;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pageTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text, #111827);
+  margin: 0;
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 12px;
+}
+
+/* ──────────────────────────────────────────────
+   Quick action buttons
+────────────────────────────────────────────── */
+.quickActions {
+  display: flex;
+  gap: 8px;
+}
+
+.quickActionBtn {
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: 1px solid var(--muted-ghost, #E6E9EE);
+  background: var(--color-surface, #fff);
+  color: #374151;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.quickActionBtn:hover,
+.quickActionBtnActive {
+  background: var(--color-primary, #0B3D91);
+  color: #fff;
+  border-color: var(--color-primary, #0B3D91);
+}
+
+/* ──────────────────────────────────────────────
+   Article card
+────────────────────────────────────────────── */
+.articleCard {
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--muted-ghost, #E6E9EE);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: var(--shadow-1, 0 1px 3px rgba(2,6,23,0.06));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.articleCardLink {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-primary, #0B3D91);
+  text-decoration: none;
+}
+
+.articleCardLink:hover {
+  text-decoration: underline;
+}
+
+.articleCardExcerpt {
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.55;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.articleCardMeta {
+  font-size: 12px;
+  color: var(--color-muted, #6B7280);
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* ──────────────────────────────────────────────
+   Right sidebar
+────────────────────────────────────────────── */
+.right {
+  grid-column: 3;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebarCard {
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--muted-ghost, #E6E9EE);
+  padding: 16px 24px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+
+.sidebarTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 12px;
+  color: #111827;
+}
+
+/* 承認待ち件数 */
+.pendingCount {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-primary, #0B3D91);
+  margin: 0;
+  line-height: 1.1;
+}
+
+.pendingUnit {
+  font-size: 1rem;
+  font-weight: 400;
+  color: #374151;
+}
+
+/* 週次アクティビティ一覧 */
+.statList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.statItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--muted-ghost, #E6E9EE);
+  font-size: 0.875rem;
+  color: var(--color-muted, #6B7280);
+}
+
+.statItem:last-child {
+  border-bottom: none;
+}
+
+.statValue {
+  font-weight: 600;
+  color: #111827;
+}
+
+/* ──────────────────────────────────────────────
+   Loading / error
+────────────────────────────────────────────── */
+.loadingText {
+  font-size: 14px;
+  color: var(--color-muted, #6B7280);
+  margin: 0;
+}
+
+.errorText {
+  font-size: 13px;
+  color: var(--color-danger, #EF4444);
+  margin: 0;
+}
+
