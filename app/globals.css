@@ -1,0 +1,17 @@
+:root {
+  --scr10-panel-bg: #f5f7fa;
+  --scr10-primary: #6fb1ff;
+  --scr10-surface: #ffffff;
+  --scr10-muted: #6b7280;
+  --scr10-border: #e5e7eb;
+  --scr10-approve: #10b981;
+  --scr10-reject: #ef4444;
+  --scr10-pending: #ff9f1c;
+  --scr10-radius-lg: 16px;
+  --scr10-radius-md: 12px;
+  --scr10-radius-sm: 8px;
+}
+
+/* global utility for body background if desired */
+html, body { height: 100%; }
+body { margin: 0; font-family: 'Noto Sans JP', 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif; }
