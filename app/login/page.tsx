@@ -2,6 +2,7 @@
 
 import React from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import LoginForm from "../components/LoginForm"
 import styles from "../pages/login/login.module.css"
 import { login } from "../lib/auth"
@@ -44,7 +45,11 @@ export default function LoginPage() {
 
           <div className={styles.helpBox}>
             <div>まだアカウントをお持ちでないですか？</div>
-            <div className={styles.helpSub}>アカウント登録はこちらです！</div>
+            <div className={styles.helpSub}>
+              <Link href="/register" className={styles.helpLink}>
+                アカウント登録はこちら
+              </Link>
+            </div>
           </div>
         </div>
       </div>
