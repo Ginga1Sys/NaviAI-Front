@@ -6,13 +6,12 @@
   - layout.tsx: アプリ共通レイアウト（ページ共通のヘッダー/フッター、メタ情報の設定）。
   - page.tsx: ルート（アプリトップ）用のページエントリポイント。
   - components/
-    - LoginForm.tsx: ログインフォームコンポーネント（入力バリデーション、送信ハンドリング）。
+    - LoginForm.tsx: ログインフォームコンポーネント（メールアドレス入力・バリデーション・送信ハンドリング。メールアドレス専用化：「メールアドレス または ユーザー名」入力を「メールアドレス」のみに統一。型定義を `identifier` → `email` に変更。）
     - RegisterForm.tsx: 会員登録フォームコンポーネント（名前・メール・パスワード入力、クライアント側バリデーション、`POST /api/auth/register` 呼び出し、成功/失敗メッセージ表示）。
     - MyPostItem.tsx: 投稿一覧内の1件表示コンポーネント（カード表示、メタ情報、操作ボタン）。
     - MyPostList.tsx: マイ投稿一覧をレンダリングするリストコンポーネント（ページネーション/取得ロジックを持つ）。
-    - Dashboard.tsx: ダッシュボード画面のメインコンポーネント（サイドバーナビ・記事カード・統計ウィジェットのレイアウト統合）。
-    - Dashboard.tsx: ダッシュボード画面のメインコンポーネント（サイドバーナビ・記事カード・統計ウィジェットのレイアウト統合）。
-      - 変更点（feature/dashboard_searchlist ブランチ）: 左サイドバーにブランド `Ginga` を追加し、サイドバー開閉トグル（localStorage に状態保存）を実装。ナビ順序を入れ替え、`管理者パネル` と `＋ 新規投稿`（暫定ルート `/admin`, `/posts/new`）をサイドバーに追加しています。
+    - Dashboard.tsx: ダッシュボード画面のメインコンポーネント（サイドバーナビ・記事カード・統計ウィジェットのレイアウト統合）。管理者判定: localStorage `currentUser` から `isAdmin`/`roles` を読み取り、管理者のみ「承認待ち」・「週次アクティビティ」ウィジェットを右サイドバーに表示。
+      - 変更点（feature/dashboard_searchlist ブランチ）: 左サイドバーにブランド `Ginga` を追加し、サイドバー開閉トグル（localStorage に状態保存）を実装。管理者向けウィジェットは管理者ユーザーのみ表示。
     - QuickSearch.tsx: クイック検索コンポーネント（`GET /api/v1/knowledge` を呼び出し、デバウンス付きサジェスト表示・検索結果ページへの遷移）。
     - QuickSearch.module.css: `QuickSearch` 専用のモジュール CSS。
     - QuickTags.tsx: タグ一覧コンポーネント（`GET /api/v1/tags` を呼び出してタグチップを表示、クリックでタグ検索ページへ遷移）。
@@ -20,15 +19,16 @@
     - SearchResultView.tsx: 検索結果画面（SCR-04）のメインクライアントコンポーネント（`useSearchParams` でクエリを受け取り、`GET /api/v1/knowledge` および `GET /api/v1/tags` を呼び出して検索結果と右サイドバーを統合したレイアウトを提供）。
     - SearchResultList.tsx: 検索結果の記事一覧を表示するコンポーネント（カード形式でタイトル・タグ・投稿者・投稿日を表示、ページネーション付き）。
     - SearchSidebar.tsx: 検索結果画面の右サイドバーコンポーネント（結果件数表示・タグ絞り込みボタン一覧）。
+    - Sidebar.tsx: ダッシュボード共通の左ナビサイドバーコンポーネント（サイドバー開閉トグル）。localStorage `currentUser` から `isAdmin`/`roles` を読み取り、管理者のみ「承認」・「管理者パネル」リンクを表示。一般ユーザーにはこれらのリンクは非表示。
   - lib/
-    - auth.ts: フロントエンドの認証ユーティリティ（トークン保存/取得、ログインAPI呼び出しのラッパー）。
+    - auth.ts: フロントエンドの認証ユーティリティ。`POST /api/v1/auth/login` 呼び出し（リクエスト: `{ email, password }`、レスポンス: `{ accessToken, refreshToken, expiresIn, user }`）。`UserResponse` ・ `LoginResponse` 型定義を提供。
     - fetcher.ts: 汎用 fetch ユーティリティ（Authorization ヘッダー自動付与、非 OK レスポンス例外化）。
     - mockPosts.ts: 開発/テスト用のモック投稿データ。
   - dashboard/
     - page.tsx: `/dashboard` 用のページ。`CommonHeader` と `Dashboard` コンポーネントをレンダリング。
     - CommonHeader.tsx: ダッシュボード共通ヘッダーのクライアントコンポーネント（検索入力を左寄せに移動、ヘッダ内のブランド/ページリンクとヘッダ内の `＋ 新規投稿` を削除し、通知/アバターは維持）。
   - login/
-    - page.tsx: `/login` 用のページ。`LoginForm` を組み合わせてログイン画面を構築。`/register` へのリンクを表示。
+    - page.tsx: `/login` 用のページ。`LoginForm` を組み合わせてログイン画面を構築。`POST /api/v1/auth/login` 呼び出し後、`accessToken`/`refreshToken` を localStorage に保存。続いて `GET /api/v1/users/me`、`GET /api/v1/dashboard`、`GET /api/v1/dashboard/activity`、`GET /api/v1/knowledge` を並列取得。`currentUser`（管理者フラグ含む）を localStorage に保存した後、`/dashboard` へ遷移。`/register` へのリンクを表示。
   - register/
     - page.tsx: `/register` 用のページ（SCR-02）。`RegisterForm` を組み合わせて会員登録画面を構築。登録成功後は `/login` へ遷移。
   - my_post_list/
@@ -66,4 +66,4 @@
 - コンポーネント実装は `app/components` 配下で再利用可能な UI とロジックを分離しており、ページは `app/*/page.tsx` でルーティングに対応しています。
 - `lib` は API 呼び出しや認証などのユーティリティ集で、テストや Storybook 的な用途で `mockPosts.ts` などのモックが用意されています。
 
-生成日時: 2026-02-24（会員登録画面（SCR-02）実装に伴い更新）
+生成日時: 2026-02-25（ログイン画面修正（SCR-01）実装に伴い更新）

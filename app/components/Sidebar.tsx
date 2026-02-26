@@ -17,12 +17,18 @@ type Props = {
 
 export default function Sidebar({ activeItem = 'dashboard' }: Props) {
   const [open, setOpen] = useState(true)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   // localStorage は SSR では使えないため useEffect で初期化
   useEffect(() => {
     try {
       const v = localStorage.getItem('leftNavOpen')
       setOpen(v === null ? true : v === '1')
+      const userJson = localStorage.getItem('currentUser')
+      if (userJson) {
+        const user = JSON.parse(userJson)
+        setIsAdmin(!!(user?.isAdmin || (user?.roles ?? []).includes('ADMIN')))
+      }
     } catch {
       // localStorage が使えない環境では開いた状態をデフォルトとする
     }
@@ -75,18 +81,22 @@ export default function Sidebar({ activeItem = 'dashboard' }: Props) {
           >
             投稿一覧
           </Link>
-          <Link
-            href="/dashboard/review"
-            className={`${styles.navItem} ${activeItem === 'review' ? styles.navItemActive : ''}`}
-          >
-            承認
-          </Link>
-          <Link
-            href="/admin"
-            className={`${styles.navItem} ${activeItem === 'admin' ? styles.navItemActive : ''}`}
-          >
-            管理者パネル
-          </Link>
+          {isAdmin && (
+            <>
+              <Link
+                href="/dashboard/review"
+                className={`${styles.navItem} ${activeItem === 'review' ? styles.navItemActive : ''}`}
+              >
+                承認
+              </Link>
+              <Link
+                href="/admin"
+                className={`${styles.navItem} ${activeItem === 'admin' ? styles.navItemActive : ''}`}
+              >
+                管理者パネル
+              </Link>
+            </>
+          )}
           <Link href="/posts/new" className={styles.newPostButton}>
             ＋ 新規投稿
           </Link>

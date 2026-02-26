@@ -1,13 +1,25 @@
-export type LoginResponse = {
-  token?: string
-  message?: string
+export type UserResponse = {
+  id: number
+  username: string
+  email: string
+  displayName: string
+  roles?: string[]
+  isAdmin?: boolean
+  createdAt: string
 }
 
-export async function login(identifier: string, password: string): Promise<LoginResponse> {
-  const res = await fetch("/api/auth/login", {
+export type LoginResponse = {
+  accessToken: string
+  refreshToken: string
+  expiresIn: number
+  user: UserResponse
+}
+
+export async function login(email: string, password: string): Promise<LoginResponse> {
+  const res = await fetch("/api/v1/auth/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ identifier, password }),
+    body: JSON.stringify({ email, password }),
   })
 
   const data = await res.json().catch(() => ({}))

@@ -70,6 +70,18 @@ export default function Dashboard() {
   // サマリーデータ
   const [summary, setSummary] = useState<SummaryData | null>(null)
   const [summaryLoading, setSummaryLoading] = useState(true)
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  // 管理者判定（localStorage から currentUser を読み取り）
+  useEffect(() => {
+    try {
+      const userJson = localStorage.getItem('currentUser')
+      if (userJson) {
+        const user = JSON.parse(userJson)
+        setIsAdmin(!!(user?.isAdmin || (user?.roles ?? []).includes('ADMIN')))
+      }
+    } catch {}
+  }, [])
 
   // 記事取得
   useEffect(() => {
@@ -177,41 +189,45 @@ export default function Dashboard() {
       {/* ── 右サイドバー ── */}
       <aside className={styles.right} aria-label="サマリーウィジェット">
 
-        {/* 承認待ち */}
-        <div className={styles.sidebarCard}>
-          <h2 className={styles.sidebarTitle}>承認待ち</h2>
-          {summaryLoading
-            ? <p className={styles.loadingText}>読み込み中...</p>
-            : <p className={styles.pendingCount}>
-                {summary?.pendingCount ?? "—"}
-                <span className={styles.pendingUnit}>　件</span>
-              </p>
-          }
-        </div>
+        {/* 承認待ち（管理者のみ） */}
+        {isAdmin && (
+          <div className={styles.sidebarCard}>
+            <h2 className={styles.sidebarTitle}>承認待ち</h2>
+            {summaryLoading
+              ? <p className={styles.loadingText}>読み込み中...</p>
+              : <p className={styles.pendingCount}>
+                  {summary?.pendingCount ?? "—"}
+                  <span className={styles.pendingUnit}>　件</span>
+                </p>
+            }
+          </div>
+        )}
 
-        {/* 週次アクティビティ */}
-        <div className={styles.sidebarCard}>
-          <h2 className={styles.sidebarTitle}>週次アクティビティ</h2>
-          {summaryLoading
-            ? <p className={styles.loadingText}>読み込み中...</p>
-            : (
-              <ul className={styles.statList}>
-                <li className={styles.statItem}>
-                  <span>新着</span>
-                  <span className={styles.statValue}>{summary?.weeklyNew ?? "—"}</span>
-                </li>
-                <li className={styles.statItem}>
-                  <span>コメント</span>
-                  <span className={styles.statValue}>{summary?.weeklyComments ?? "—"}</span>
-                </li>
-                <li className={styles.statItem}>
-                  <span>いいね</span>
-                  <span className={styles.statValue}>{summary?.weeklyLikes ?? "—"}</span>
-                </li>
-              </ul>
-            )
-          }
-        </div>
+        {/* 週次アクティビティ（管理者のみ） */}
+        {isAdmin && (
+          <div className={styles.sidebarCard}>
+            <h2 className={styles.sidebarTitle}>週次アクティビティ</h2>
+            {summaryLoading
+              ? <p className={styles.loadingText}>読み込み中...</p>
+              : (
+                <ul className={styles.statList}>
+                  <li className={styles.statItem}>
+                    <span>新着</span>
+                    <span className={styles.statValue}>{summary?.weeklyNew ?? "—"}</span>
+                  </li>
+                  <li className={styles.statItem}>
+                    <span>コメント</span>
+                    <span className={styles.statValue}>{summary?.weeklyComments ?? "—"}</span>
+                  </li>
+                  <li className={styles.statItem}>
+                    <span>いいね</span>
+                    <span className={styles.statValue}>{summary?.weeklyLikes ?? "—"}</span>
+                  </li>
+                </ul>
+              )
+            }
+          </div>
+        )}
 
       </aside>
       </div>

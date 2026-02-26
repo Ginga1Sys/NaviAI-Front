@@ -1,32 +1,52 @@
 "use client"
 
-import React from "react"
+import React, { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import LoginForm from "../components/LoginForm"
 import styles from "../pages/login/login.module.css"
 import { login } from "../lib/auth"
+import fetcher from "../lib/fetcher"
 
 type FormData = {
-  identifier: string
+  email: string
   password: string
 }
 
 export default function LoginPage() {
   const router = useRouter()
+  const [loading, setLoading] = useState(false)
 
   async function handleSubmit(data: FormData) {
+    setLoading(true)
     try {
-      const res = await login(data.identifier, data.password)
-      if (res?.token) {
-        localStorage.setItem("token", res.token)
-        router.push("/dashboard")
-      } else {
-        throw new Error(res?.message || "ログインに失敗しました。")
-      }
+      // 1. ログイン API 呼び出し
+      const res = await login(data.email, data.password)
+
+      // 2. トークンを保存
+      localStorage.setItem("token", res.accessToken)
+      localStorage.setItem("refreshToken", res.refreshToken)
+
+      // 3. ユーザー情報取得（管理者判定含む）
+      const mePromise = fetcher<{ id: number; username: string; email: string; displayName: string; roles?: string[]; isAdmin?: boolean }>("/api/v1/users/me")
+
+      // 4. ダッシュボード・アクティビティ・ナレッジを並列取得
+      const [me] = await Promise.all([
+        mePromise,
+        fetcher("/api/v1/dashboard").catch(() => null),
+        fetcher("/api/v1/dashboard/activity").catch(() => null),
+        fetcher("/api/v1/knowledge?recommend=1&recent=3").catch(() => null),
+      ])
+
+      // 5. ユーザー情報をストレージへ保存（管理者フラグ含む）
+      localStorage.setItem("currentUser", JSON.stringify(me))
+
+      router.push("/dashboard")
     } catch (err: any) {
-      // 上位でハンドリングされる想定のためここではthrowする
+      // LoginForm 内の serverError に伝播させる
       throw new Error(err?.message || "ネットワークエラーが発生しました。")
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -40,7 +60,7 @@ export default function LoginPage() {
 
         <div className={styles.cardBody}>
           <div className={styles.formWrap}>
-            <LoginForm onSubmit={handleSubmit} />
+            <LoginForm onSubmit={handleSubmit} loading={loading} />
           </div>
 
           <div className={styles.helpBox}>
