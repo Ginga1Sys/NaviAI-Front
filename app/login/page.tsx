@@ -24,7 +24,7 @@ export default function LoginPage() {
       const res = await login(data.email, data.password)
 
       // 2. トークンを保存
-      localStorage.setItem("token", res.accessToken)
+      localStorage.setItem("token", res.token)
       localStorage.setItem("refreshToken", res.refreshToken)
 
       // 3. ユーザー情報取得（管理者判定含む）

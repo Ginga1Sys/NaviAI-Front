@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react"
 import Link from "next/link"
-import QuickTags from "./QuickTags"
 import Sidebar from "./Sidebar"
 import fetcher from "../lib/fetcher"
 import styles from "../styles/dashboard.module.css"
@@ -59,11 +58,9 @@ function ArticleCard({ article }: { article: Article }) {
 // ──────────────────────────────────────────────
 
 export default function Dashboard() {
-  const [activeMode, setActiveMode] = useState<"latest" | "recommended">("latest")
-
   // 記事データ
-  const [latestArticle, setLatestArticle] = useState<Article | null>(null)
   const [recommendedArticle, setRecommendedArticle] = useState<Article | null>(null)
+  const [latestArticles, setLatestArticles] = useState<Article[]>([])
   const [articlesLoading, setArticlesLoading] = useState(true)
   const [articlesError, setArticlesError] = useState<string | null>(null)
 
@@ -89,20 +86,21 @@ export default function Dashboard() {
     async function loadArticles() {
       try {
         const [latestRes, recommendedRes] = await Promise.all([
-          fetcher<ArticleApiResponse>("/api/v1/knowledge?sort=publishedAt,desc&size=1"),
+          fetcher<ArticleApiResponse>("/api/v1/knowledge?sort=publishedAt,desc&size=3"),
           fetcher<ArticleApiResponse>("/api/v1/knowledge?sort=views,desc&size=1"),
         ])
         if (cancelled) return
-        const toFirst = (res: ArticleApiResponse): Article | null => {
-          const arr = Array.isArray(res)
-            ? res
-            : (res as { content?: Article[]; data?: Article[] }).content ??
-              (res as { content?: Article[]; data?: Article[] }).data ??
-              []
-          return arr[0] ?? null
+        const toArray = (res: ArticleApiResponse): Article[] => {
+          if (Array.isArray(res)) return res
+          return (
+            (res as { content?: Article[]; data?: Article[] }).content ??
+            (res as { content?: Article[]; data?: Article[] }).data ??
+            []
+          )
         }
-        setLatestArticle(toFirst(latestRes))
-        setRecommendedArticle(toFirst(recommendedRes))
+        const recommendedArr = toArray(recommendedRes)
+        setRecommendedArticle(recommendedArr[0] ?? null)
+        setLatestArticles(toArray(latestRes).slice(0, 3))
       } catch {
         if (!cancelled) setArticlesError("記事の取得に失敗しました。")
       } finally {
@@ -130,8 +128,6 @@ export default function Dashboard() {
     return () => { cancelled = true }
   }, [])
 
-  const displayArticle = activeMode === "latest" ? latestArticle : recommendedArticle
-
   return (
     <div className={styles.container}>
 
@@ -147,42 +143,42 @@ export default function Dashboard() {
 
         {/* クイック操作ボタン */}
         <div className={styles.quickActions}>
-          <button
-            type="button"
-            className={`${styles.quickActionBtn} ${activeMode === "latest" ? styles.quickActionBtnActive : ""}`}
-            onClick={() => setActiveMode("latest")}
-            aria-pressed={activeMode === "latest"}
+          <Link
+            href="/search_list?type=new&limit=20"
+            className={styles.quickActionBtn}
           >
-            新着
-          </button>
-          <button
-            type="button"
-            className={`${styles.quickActionBtn} ${activeMode === "recommended" ? styles.quickActionBtnActive : ""}`}
-            onClick={() => setActiveMode("recommended")}
-            aria-pressed={activeMode === "recommended"}
+            新着記事
+          </Link>
+          <Link
+            href="/search_list?type=recommended&limit=10"
+            className={styles.quickActionBtn}
           >
-            おすすめ
-          </button>
+            おすすめ記事
+          </Link>
         </div>
 
-        {/* 記事表示エリア */}
-        <section aria-labelledby="section-articles">
-          <h2 className={styles.sectionTitle} id="section-articles">
-            {activeMode === "latest" ? "新着記事" : "おすすめ記事"}
-          </h2>
+        {/* おすすめ記事（1件・上段固定） */}
+        <section aria-labelledby="section-recommended">
+          <h2 className={styles.sectionTitle} id="section-recommended">おすすめ記事</h2>
           {articlesLoading && <p className={styles.loadingText}>記事を読み込み中...</p>}
           {articlesError && <p className={styles.errorText}>{articlesError}</p>}
           {!articlesLoading && !articlesError && (
-            displayArticle
-              ? <ArticleCard article={displayArticle} />
+            recommendedArticle
+              ? <ArticleCard article={recommendedArticle} />
               : <p className={styles.loadingText}>記事がありません。</p>
           )}
         </section>
 
-        {/* タグ一覧 */}
-        <section aria-labelledby="section-tags">
-          <h2 className={styles.sectionTitle} id="section-tags">タグから探す</h2>
-          <QuickTags />
+        {/* 新着記事（最大3件・下段） */}
+        <section aria-labelledby="section-latest">
+          <h2 className={styles.sectionTitle} id="section-latest">新着記事</h2>
+          {articlesLoading && <p className={styles.loadingText}>記事を読み込み中...</p>}
+          {articlesError && <p className={styles.errorText}>{articlesError}</p>}
+          {!articlesLoading && !articlesError && (
+            latestArticles.length > 0
+              ? latestArticles.map((a) => <ArticleCard key={a.id} article={a} />)
+              : <p className={styles.loadingText}>記事がありません。</p>
+          )}
         </section>
       </main>
 
@@ -195,10 +191,10 @@ export default function Dashboard() {
             <h2 className={styles.sidebarTitle}>承認待ち</h2>
             {summaryLoading
               ? <p className={styles.loadingText}>読み込み中...</p>
-              : <p className={styles.pendingCount}>
+              : <Link href="/admin/pending" className={styles.pendingCount} style={{ textDecoration: "none" }}>
                   {summary?.pendingCount ?? "—"}
                   <span className={styles.pendingUnit}>　件</span>
-                </p>
+                </Link>
             }
           </div>
         )}
