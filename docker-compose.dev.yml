@@ -1,4 +1,5 @@
 version: '3.8'
+
 services:
   redis:
     image: redis:7-alpine
@@ -14,11 +15,18 @@ services:
     build:
       context: ../NaviAI-Back/app
       dockerfile: Dockerfile.test
+    env_file:
+      - .env
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       # H2のdata.sqlをJPA初期化後に実行するための設定
       - SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION=true
+      # Gmail SMTP設定（.envファイルから読み込み）
+      - SPRING_MAIL_HOST=smtp.gmail.com
+      - SPRING_MAIL_PORT=587
+      - SPRING_MAIL_USERNAME=${GMAIL_ADDRESS}
+      - SPRING_MAIL_PASSWORD=${GMAIL_APP_PASSWORD}
     depends_on:
       redis:
         condition: service_healthy

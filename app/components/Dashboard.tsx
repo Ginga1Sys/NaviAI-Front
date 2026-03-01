@@ -19,10 +19,9 @@ type Article = {
 }
 
 type SummaryData = {
-  pendingCount?: number
-  weeklyNew?: number
-  weeklyComments?: number
-  weeklyLikes?: number
+  totalPosts?: number
+  weeklyPosts?: number
+  pendingApprovals?: number
 }
 
 type ArticleApiResponse = {
@@ -116,7 +115,7 @@ export default function Dashboard() {
     let cancelled = false
     async function loadSummary() {
       try {
-        const res = await fetcher<SummaryData>("/api/v1/summary")
+        const res = await fetcher<SummaryData>("/api/v1/dashboard")
         if (!cancelled) setSummary(res)
       } catch {
         // サマリー取得失敗はサイレント
@@ -192,7 +191,7 @@ export default function Dashboard() {
             {summaryLoading
               ? <p className={styles.loadingText}>読み込み中...</p>
               : <Link href="/admin/pending" className={styles.pendingCount} style={{ textDecoration: "none" }}>
-                  {summary?.pendingCount ?? "—"}
+                  {summary?.pendingApprovals ?? "—"}
                   <span className={styles.pendingUnit}>　件</span>
                 </Link>
             }
@@ -209,15 +208,11 @@ export default function Dashboard() {
                 <ul className={styles.statList}>
                   <li className={styles.statItem}>
                     <span>新着</span>
-                    <span className={styles.statValue}>{summary?.weeklyNew ?? "—"}</span>
+                    <span className={styles.statValue}>{summary?.weeklyPosts ?? "—"}</span>
                   </li>
                   <li className={styles.statItem}>
-                    <span>コメント</span>
-                    <span className={styles.statValue}>{summary?.weeklyComments ?? "—"}</span>
-                  </li>
-                  <li className={styles.statItem}>
-                    <span>いいね</span>
-                    <span className={styles.statValue}>{summary?.weeklyLikes ?? "—"}</span>
+                    <span>総投稿数</span>
+                    <span className={styles.statValue}>{summary?.totalPosts ?? "—"}</span>
                   </li>
                 </ul>
               )
