@@ -31,7 +31,14 @@
   - login/
     - page.tsx: `/login` 用のページ。`LoginForm` を組み合わせてログイン画面を構築。`POST /api/v1/auth/login` 呼び出し後、`accessToken`/`refreshToken` を localStorage に保存。続いて `GET /api/v1/users/me`、`GET /api/v1/dashboard`、`GET /api/v1/dashboard/activity`、`GET /api/v1/knowledge` を並列取得。`currentUser`（管理者フラグ含む）を localStorage に保存した後、`/dashboard` へ遷移。`/register` へのリンクを表示。
   - register/
-    - page.tsx: `/register` 用のページ（SCR-02）。`RegisterForm` を組み合わせて会員登録画面を構築。登録成功後は `/login` へ遷移。
+    - page.tsx: `/register` 用のページ（SCR-02）。`RegisterForm` を組み合わせて会員登録画面を構築。登録成功後（API が 201 を返した場合）は `/register/mail-sent` へ遷移。
+    - status.module.css: `mail-sent` / `complete` / `failed` の3画面で共通利用するモジュール CSS（ステータスカード・アイコン・メッセージ・注意書きのスタイル）。
+    - mail-sent/
+      - page.tsx: `/register/mail-sent` 用のページ。会員登録フォーム送信後に表示する「確認メール送信完了」画面。メール内リンクをクリックするよう促し、メールが届かない場合の案内を表示する。
+    - complete/
+      - page.tsx: `/register/complete` 用のページ。バックエンドの確認エンドポイント（`/api/v1/auth/confirm`）が処理成功時にリダイレクトする「登録完了」画面。ログイン画面へのリンクを表示。
+    - failed/
+      - page.tsx: `/register/failed` 用のページ。バックエンドの確認エンドポイントがトークン無効 (`reason=invalid`) または期限切れ (`reason=expired`) の場合にリダイレクトする「登録失敗」画面。`useSearchParams` で `reason` を取得し、原因に応じたメッセージと再登録リンクを表示。
   - my_post_list/
     - page.tsx: マイ投稿一覧ページのエントリ。`MyPostList` を使用してユーザー投稿を表示。
   - search_list/
@@ -67,4 +74,4 @@
 - コンポーネント実装は `app/components` 配下で再利用可能な UI とロジックを分離しており、ページは `app/*/page.tsx` でルーティングに対応しています。
 - `lib` は API 呼び出しや認証などのユーティリティ集で、テストや Storybook 的な用途で `mockPosts.ts` などのモックが用意されています。
 
-生成日時: 2026-02-26（ダッシュボード画面修正（SCR-03）実装に伴い更新）
+生成日時: 2026-03-01（会員登録フロー修正：mail-sent / complete / failed 画面追加、登録後遷移を /login から /register/mail-sent に変更）

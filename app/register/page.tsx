@@ -10,10 +10,8 @@ export default function RegisterPage() {
   const router = useRouter()
 
   function handleSuccess() {
-    // 登録成功後はログイン画面へ遷移
-    setTimeout(() => {
-      router.push("/login")
-    }, 3000)
+    // 登録成功後はメール送信完了画面へ遷移
+    router.push("/register/mail-sent")
   }
 
   return (
