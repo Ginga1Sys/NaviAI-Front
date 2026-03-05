@@ -31,10 +31,16 @@ export default function LoginPage() {
       const mePromise = fetcher<{ id: number; username: string; email: string; displayName: string; roles?: string[]; isAdmin?: boolean }>("/api/v1/users/me")
 
       // 4. ダッシュボード・アクティビティ・ナレッジを並列取得
+      const toDate = new Date()
+      const fromDate = new Date(toDate)
+      fromDate.setDate(fromDate.getDate() - 7)
+      const toStr = toDate.toISOString().slice(0, 10)
+      const fromStr = fromDate.toISOString().slice(0, 10)
+
       const [me] = await Promise.all([
         mePromise,
         fetcher("/api/v1/dashboard").catch(() => null),
-        fetcher("/api/v1/dashboard/activity").catch(() => null),
+        fetcher(`/api/v1/dashboard/activity?from=${fromStr}&to=${toStr}`).catch(() => null),
         fetcher("/api/v1/knowledge?recommend=1&recent=3").catch(() => null),
       ])
 
