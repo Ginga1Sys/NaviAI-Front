@@ -9,7 +9,7 @@ export default function CommonHeader() {
     <header role="banner" className="topbar" style={{ background: 'var(--primary, #6fb1ff)' }}>
       <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', height: '64px', padding: '8px 24px' }}>
         {/* Left: quick search moved left */}
-        <form role="search" aria-label="サイト検索" action="/search" method="get" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <form role="search" aria-label="サイト検索" action="/search_list" method="get" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <label className="sr-only" htmlFor="dashboard-search">検索</label>
           <input id="dashboard-search" name="q" type="search" placeholder="検索・フィルタ…" aria-label="検索" style={{ width: '320px', height: '40px', padding: '8px 12px', borderRadius: '6px', border: '1px solid rgba(230, 233, 238, 0.9)' }} />
         </form>

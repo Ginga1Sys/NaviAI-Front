@@ -16,6 +16,7 @@ import styles from "../styles/search_list.module.css"
 type KnowledgeApiResponse = {
   content?: Article[]
   data?: Article[]
+  items?: Article[]
   totalElements?: number
   totalPages?: number
   total?: number
@@ -28,6 +29,18 @@ type TagApiResponse = {
 } | Tag[]
 
 const PAGE_SIZE = 20
+
+function parsePositiveInt(value: string | null): number | null {
+  if (!value) return null
+  const parsed = Number.parseInt(value, 10)
+  if (Number.isNaN(parsed) || parsed < 1) return null
+  return parsed
+}
+
+function normalizeType(value: string | null): "new" | "recommended" | null {
+  if (value === "new" || value === "recommended") return value
+  return null
+}
 
 // ──────────────────────────────────────────────
 // メインコンポーネント: SearchResultView
@@ -44,6 +57,12 @@ export default function SearchResultView() {
     const t = searchParams.get("tags")
     return t ? t.split(",").filter(Boolean) : []
   })
+  const [type, setType] = useState<"new" | "recommended" | null>(
+    normalizeType(searchParams.get("type")),
+  )
+  const [limit, setLimit] = useState<number | null>(
+    parsePositiveInt(searchParams.get("limit")),
+  )
   const [page, setPage] = useState<number>(() => {
     const p = parseInt(searchParams.get("page") ?? "1", 10)
     return isNaN(p) || p < 1 ? 1 : p
@@ -59,6 +78,18 @@ export default function SearchResultView() {
   // タグ一覧
   const [tags, setTags] = useState<Tag[]>([])
   const [tagsLoading, setTagsLoading] = useState(true)
+
+  // URL クエリ更新時（戻る/進む等）にローカル状態へ同期する
+  useEffect(() => {
+    setQuery(searchParams.get("q") ?? "")
+    setInputValue(searchParams.get("q") ?? "")
+    const t = searchParams.get("tags")
+    setSelectedTags(t ? t.split(",").filter(Boolean) : [])
+    setType(normalizeType(searchParams.get("type")))
+    setLimit(parsePositiveInt(searchParams.get("limit")))
+    const p = parseInt(searchParams.get("page") ?? "1", 10)
+    setPage(isNaN(p) || p < 1 ? 1 : p)
+  }, [searchParams])
 
   // ── URL を更新してクエリパラメータを反映する ──
   const pushUrl = useCallback(
@@ -83,8 +114,12 @@ export default function SearchResultView() {
         const params = new URLSearchParams()
         if (query.trim()) params.set("q", query.trim())
         if (selectedTags.length > 0) params.set("tags", selectedTags.join(","))
+        if (type === "new") params.set("filter", "latest")
+        if (type === "recommended") params.set("filter", "recommended")
+
+        const pageSize = limit ?? PAGE_SIZE
         params.set("page", String(page - 1)) // API は 0-indexed ページネーションを想定
-        params.set("size", String(PAGE_SIZE))
+        params.set("size", String(pageSize))
 
         const res = await fetcher<KnowledgeApiResponse>(
           `/api/v1/knowledge?${params.toString()}`
@@ -100,6 +135,7 @@ export default function SearchResultView() {
           const items =
             (res as { content?: Article[]; data?: Article[] }).content ??
             (res as { content?: Article[]; data?: Article[] }).data ??
+            (res as { items?: Article[] }).items ??
             []
           setArticles(items)
 
@@ -111,7 +147,7 @@ export default function SearchResultView() {
           setTotalCount(total)
           setTotalPages(
             (res as { totalPages?: number }).totalPages ??
-            (Math.ceil(total / PAGE_SIZE) || 1)
+            (Math.ceil(total / pageSize) || 1)
           )
         }
       } catch (err: unknown) {
@@ -124,7 +160,7 @@ export default function SearchResultView() {
     }
     loadArticles()
     return () => { cancelled = true }
-  }, [query, selectedTags, page])
+  }, [query, selectedTags, page, type, limit])
 
   // ── タグ一覧 API 呼び出し ──
   useEffect(() => {
@@ -195,6 +231,12 @@ export default function SearchResultView() {
                   <> &nbsp;／&nbsp; タグ: {selectedTags.join(", ")}</>
                 )}
               </p>
+            )}
+            {!query && type === "new" && (
+              <p className={styles.queryLabel}>新着記事の一覧を表示しています。</p>
+            )}
+            {!query && type === "recommended" && (
+              <p className={styles.queryLabel}>おすすめ記事の一覧を表示しています。</p>
             )}
           </div>
 
