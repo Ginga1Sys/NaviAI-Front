@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Sidebar from "./Sidebar"
 import fetcher from "../lib/fetcher"
@@ -24,9 +25,30 @@ type SummaryData = {
   pendingApprovals?: number
 }
 
+type ActivityDayItem = {
+  date: string
+  posts: number
+  comments: number
+  likes: number
+}
+
+type ActivityResponse = {
+  range?: string
+  from?: string
+  to?: string
+  items?: ActivityDayItem[]
+}
+
+type WeeklyActivityTotals = {
+  posts: number
+  comments: number
+  likes: number
+}
+
 type ArticleApiResponse = {
   content?: Article[]
   data?: Article[]
+  items?: Article[]
 } | Article[]
 
 // ──────────────────────────────────────────────
@@ -57,6 +79,16 @@ function ArticleCard({ article }: { article: Article }) {
 // ──────────────────────────────────────────────
 
 export default function Dashboard() {
+  const router = useRouter()
+
+  // 認証ガード: トークン未存在の場合は /login へリダイレクト
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      router.replace('/login')
+    }
+  }, [router])
+
   // 記事データ
   const [recommendedArticle, setRecommendedArticle] = useState<Article | null>(null)
   const [latestArticles, setLatestArticles] = useState<Article[]>([])
@@ -65,6 +97,7 @@ export default function Dashboard() {
 
   // サマリーデータ
   const [summary, setSummary] = useState<SummaryData | null>(null)
+  const [weeklyActivity, setWeeklyActivity] = useState<WeeklyActivityTotals | null>(null)
   const [summaryLoading, setSummaryLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
 
@@ -74,7 +107,16 @@ export default function Dashboard() {
       const userJson = localStorage.getItem('currentUser')
       if (userJson) {
         const user = JSON.parse(userJson)
-        setIsAdmin(!!(user?.isAdmin || (user?.roles ?? []).includes('ADMIN')))
+        setIsAdmin(
+          !!(
+            user?.isAdmin ||
+            user?.admin ||
+            user?.username === 'admin' ||
+            user?.email === 'admin@naviai.com' ||
+            (user?.roles ?? []).includes('ADMIN') ||
+            (user?.roles ?? []).includes('ROLE_ADMIN')
+          )
+        )
       }
     } catch {}
   }, [])
@@ -85,8 +127,8 @@ export default function Dashboard() {
     async function loadArticles() {
       try {
         const [latestRes, recommendedRes] = await Promise.all([
-          fetcher<ArticleApiResponse>("/api/v1/knowledge?sort=publishedAt,desc&size=3"),
-          fetcher<ArticleApiResponse>("/api/v1/knowledge?sort=views,desc&size=1"),
+          fetcher<ArticleApiResponse>("/api/v1/knowledge?filter=latest&size=3"),
+          fetcher<ArticleApiResponse>("/api/v1/knowledge?filter=recommended&size=1"),
         ])
         if (cancelled) return
         const toArray = (res: ArticleApiResponse): Article[] => {
@@ -94,6 +136,7 @@ export default function Dashboard() {
           return (
             (res as { content?: Article[]; data?: Article[] }).content ??
             (res as { content?: Article[]; data?: Article[] }).data ??
+            (res as { items?: Article[] }).items ??
             []
           )
         }
@@ -115,8 +158,30 @@ export default function Dashboard() {
     let cancelled = false
     async function loadSummary() {
       try {
-        const res = await fetcher<SummaryData>("/api/v1/dashboard")
-        if (!cancelled) setSummary(res)
+        const toDate = new Date()
+        const fromDate = new Date(toDate)
+        fromDate.setDate(fromDate.getDate() - 6)
+        const toStr = toDate.toISOString().slice(0, 10)
+        const fromStr = fromDate.toISOString().slice(0, 10)
+
+        const [summaryRes, activityRes] = await Promise.all([
+          fetcher<SummaryData>("/api/v1/dashboard"),
+          fetcher<ActivityResponse>(`/api/v1/dashboard/activity?from=${fromStr}&to=${toStr}`),
+        ])
+
+        if (cancelled) return
+
+        setSummary(summaryRes)
+        const totals = (activityRes.items ?? []).reduce(
+          (acc, item) => {
+            acc.posts += item.posts ?? 0
+            acc.comments += item.comments ?? 0
+            acc.likes += item.likes ?? 0
+            return acc
+          },
+          { posts: 0, comments: 0, likes: 0 }
+        )
+        setWeeklyActivity(totals)
       } catch {
         // サマリー取得失敗はサイレント
       } finally {
@@ -208,11 +273,15 @@ export default function Dashboard() {
                 <ul className={styles.statList}>
                   <li className={styles.statItem}>
                     <span>新着</span>
-                    <span className={styles.statValue}>{summary?.weeklyPosts ?? "—"}</span>
+                    <span className={styles.statValue}>{weeklyActivity?.posts ?? "—"}</span>
                   </li>
                   <li className={styles.statItem}>
-                    <span>総投稿数</span>
-                    <span className={styles.statValue}>{summary?.totalPosts ?? "—"}</span>
+                    <span>コメント</span>
+                    <span className={styles.statValue}>{weeklyActivity?.comments ?? "—"}</span>
+                  </li>
+                  <li className={styles.statItem}>
+                    <span>いいね</span>
+                    <span className={styles.statValue}>{weeklyActivity?.likes ?? "—"}</span>
                   </li>
                 </ul>
               )

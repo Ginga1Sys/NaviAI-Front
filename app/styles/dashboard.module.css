@@ -95,6 +95,27 @@
   background: #C53030;
 }
 
+.logoutButton {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  margin-top: auto;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.logoutButton:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
 .navItem {
   display: flex;
   align-items: center;

@@ -1,7 +1,9 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import fetcher from '../lib/fetcher'
 import styles from '../styles/dashboard.module.css'
 
 export type SidebarActiveItem =
@@ -16,6 +18,7 @@ type Props = {
 }
 
 export default function Sidebar({ activeItem = 'dashboard' }: Props) {
+  const router = useRouter()
   const [open, setOpen] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
 
@@ -27,7 +30,16 @@ export default function Sidebar({ activeItem = 'dashboard' }: Props) {
       const userJson = localStorage.getItem('currentUser')
       if (userJson) {
         const user = JSON.parse(userJson)
-        setIsAdmin(!!(user?.isAdmin || (user?.roles ?? []).includes('ADMIN')))
+        setIsAdmin(
+          !!(
+            user?.isAdmin ||
+            user?.admin ||
+            user?.username === 'admin' ||
+            user?.email === 'admin@naviai.com' ||
+            (user?.roles ?? []).includes('ADMIN') ||
+            (user?.roles ?? []).includes('ROLE_ADMIN')
+          )
+        )
       }
     } catch {
       // localStorage が使えない環境では開いた状態をデフォルトとする
@@ -40,6 +52,24 @@ export default function Sidebar({ activeItem = 'dashboard' }: Props) {
       try { localStorage.setItem('leftNavOpen', next ? '1' : '0') } catch {}
       return next
     })
+  }
+
+  const handleLogout = async () => {
+    try {
+      const refreshToken = localStorage.getItem('refreshToken')
+      await fetcher('/api/v1/auth/logout', {
+        method: 'POST',
+        body: JSON.stringify({ refreshToken }),
+      })
+    } catch {
+      // ログアウト API 失敗時もクライアント側は必ずクリア
+    } finally {
+      localStorage.removeItem('token')
+      localStorage.removeItem('refreshToken')
+      localStorage.removeItem('currentUser')
+      localStorage.removeItem('leftNavOpen')
+      router.replace('/login')
+    }
   }
 
   return (
@@ -100,6 +130,12 @@ export default function Sidebar({ activeItem = 'dashboard' }: Props) {
           <Link href="/posts/new" className={styles.newPostButton}>
             ＋ 新規投稿
           </Link>
+          <button
+            onClick={handleLogout}
+            className={styles.logoutButton}
+          >
+            ログアウト
+          </button>
         </>
       )}
     </nav>

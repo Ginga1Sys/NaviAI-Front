@@ -13,6 +13,9 @@
     - Dashboard.tsx: ダッシュボード画面のメインコンポーネント（サイドバーナビ・記事カード・統計ウィジェットのレイアウト統合）。管理者判定: localStorage `currentUser` から `isAdmin`/`roles` を読み取り、管理者のみ「承認待ち」・「週次アクティビティ」ウィジェットを右サイドバーに表示。
       - 変更点（feature/dashboard_searchlist ブランチ）: 左サイドバーにブランド `Ginga` を追加し、サイドバー開閉トグル（localStorage に状態保存）を実装。管理者向けウィジェットは管理者ユーザーのみ表示。
       - 表示ルール修正: 常に「おすすめ記事1件（上段）」＋「新着記事最大3件（下段）」を同時表示するように変更（従来の「新着」「おすすめ」切替表示から変更）。「タグから探す」セクションを削除し `QuickTags` コンポーネントの参照を除去。クイック操作ボタンを `Link` コンポーネントへ変更し、「新着記事」は `/search_list?type=new&limit=20`、「おすすめ記事」は `/search_list?type=recommended&limit=10` へ遷移。管理者用「承認待ち」件数をクリックすると `/admin/pending`（SCR-11）へ遷移するよう `Link` を追加。
+      - 不具合修正（2026-03-09）: 記事APIレスポンスの `items` フィールドをパース対象に追加し、`/api/v1/knowledge` の `filter=latest` / `filter=recommended` を使用して新着・おすすめを正しく表示するよう修正。管理者判定は `isAdmin` に加えて `admin` と `roles`（`ADMIN` / `ROLE_ADMIN`）も判定対象に拡張。
+      - 週次アクティビティ表示修正（2026-03-09）: `GET /api/v1/dashboard/activity` を呼び出して直近7日分の `posts/comments/likes` を集計し、右カラムに「新着」「コメント」「いいね」を表示するよう修正（従来の「総投稿数」表示を廃止）。
+      - 認証ガード追加: マウント時に localStorage `token` の存在を確認し、未存在の場合は `router.replace('/login')` で未ログイン状態から直接アクセスした場合にログイン画面へリダイレクト。
     - QuickSearch.tsx: クイック検索コンポーネント（`GET /api/v1/knowledge` を呼び出し、デバウンス付きサジェスト表示・検索結果ページへの遷移）。
     - QuickSearch.module.css: `QuickSearch` 専用のモジュール CSS。
     - QuickTags.tsx: タグ一覧コンポーネント（`GET /api/v1/tags` を呼び出してタグチップを表示、クリックでタグ検索ページへ遷移）。
@@ -20,7 +23,8 @@
     - SearchResultView.tsx: 検索結果画面（SCR-04）のメインクライアントコンポーネント（`useSearchParams` でクエリを受け取り、`GET /api/v1/knowledge` および `GET /api/v1/tags` を呼び出して検索結果と右サイドバーを統合したレイアウトを提供）。
     - SearchResultList.tsx: 検索結果の記事一覧を表示するコンポーネント（カード形式でタイトル・タグ・投稿者・投稿日を表示、ページネーション付き）。
     - SearchSidebar.tsx: 検索結果画面の右サイドバーコンポーネント（結果件数表示・タグ絞り込みボタン一覧）。
-    - Sidebar.tsx: ダッシュボード共通の左ナビサイドバーコンポーネント（サイドバー開閉トグル）。localStorage `currentUser` から `isAdmin`/`roles` を読み取り、管理者のみ「承認」・「管理者パネル」リンクを表示。一般ユーザーにはこれらのリンクは非表示。
+    - Sidebar.tsx: ダッシュボード共通の左ナビサイドバーコンポーネント（サイドバー開閉トグル）。localStorage `currentUser` から `isAdmin`/`admin`/`roles` を読み取り、管理者のみ「承認」・「管理者パネル」リンクを表示。一般ユーザーにはこれらのリンクは非表示。
+      - ログアウト追加: サイドバー最下部に「ログアウト」ボタンを追加。クリック時に `POST /api/v1/auth/logout` を呼び出し（失敗時もクライアント内のクリアは必実施）、localStorage（`token`/`refreshToken`/`currentUser`/`leftNavOpen`）を削除して `/login` へリダイレクト。
   - lib/
     - auth.ts: フロントエンドの認証ユーティリティ。`POST /api/v1/auth/login` 呼び出し（リクエスト: `{ email, password }`、レスポンス: `{ accessToken, refreshToken, expiresIn, user }`）。`UserResponse` ・ `LoginResponse` 型定義を提供。
     - fetcher.ts: 汎用 fetch ユーティリティ（Authorization ヘッダー自動付与、非 OK レスポンス例外化）。
@@ -64,7 +68,7 @@
     - global.css: アプリ共通のグローバルスタイル。
     - tokens.css: デザイントークン（色、スペーシング、フォントサイズ等）。
     - dashboard.module.css: ダッシュボード画面のレイアウト・統計ウィジェット・記事カード等のモジュール CSS。
-      - 追加/更新されたクラス: `.leftBrand`（サイドバー上部ブランド）、`.sidebarToggleButton`（トグル）、`.leftNavCollapsed`（折りたたみ状態）、`.newPostButton`（サイドバー内の新規投稿ボタン）。
+      - 追加/更新されたクラス: `.leftBrand`（サイドバー上部ブランド）、`.sidebarToggleButton`（トグル）、`.leftNavCollapsed`（折りたたみ状態）、`.newPostButton`（サイドバー内の新規投稿ボタン）、`.logoutButton`（サイドバー最下部のログアウトボタン）。
     - search_list.module.css: 検索結果一覧画面（SCR-04）固有のモジュール CSS（検索バー・結果カード・ページネーション・右サイドバーのスタイル）。
     - components/: コンポーネント単位の CSS モジュールや共通スタイルを格納。
       - card.module.css: カードUI用のモジュールCSS。
@@ -74,4 +78,4 @@
 - コンポーネント実装は `app/components` 配下で再利用可能な UI とロジックを分離しており、ページは `app/*/page.tsx` でルーティングに対応しています。
 - `lib` は API 呼び出しや認証などのユーティリティ集で、テストや Storybook 的な用途で `mockPosts.ts` などのモックが用意されています。
 
-生成日時: 2026-03-01（会員登録フロー修正：mail-sent / complete / failed 画面追加、登録後遷移を /login から /register/mail-sent に変更）
+生成日時: 2026-03-05（ダッシュボード画面修正_2: 未ログインリダイレクトガード追加、サイドバーにログアウトボタン追加）
