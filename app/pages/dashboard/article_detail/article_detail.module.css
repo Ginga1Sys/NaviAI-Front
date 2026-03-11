@@ -1,0 +1,477 @@
+/* =====================================================
+   SCR-06 記事詳細画面 — CSSモジュール
+   レイアウト: 左ナビ(240px) | メイン | 右サイドバー(320px)
+   my_post_list.module.css と同一のグリッド構成
+   ===================================================== */
+
+/* ---------- 共通ローディング / 空表示 ---------- */
+.loading {
+  padding: 24px;
+  text-align: center;
+  color: #444;
+}
+
+.notFound {
+  padding: 24px;
+  text-align: center;
+  color: #666;
+}
+
+/* ---------- ページ全体グリッド ---------- */
+.container {
+  display: grid;
+  grid-template-columns: 240px 1fr 320px;
+  gap: 24px;
+  align-items: start;
+  padding: 24px;
+  max-width: var(--max-content-width, 1200px);
+  margin: 0 auto;
+}
+
+@media (max-width: 1024px) {
+  .container {
+    grid-template-columns: 200px 1fr;
+  }
+  /* 🟢 [軽微] display: none はスクリーンリーダーからもアクセス不可になるため、意図的であれば OK。
+       サイドバーの内容をスクリーンリーダーでも読み上げたい場合は visibility: hidden や aria-hidden の利用を検討すること。 */
+  .right {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    grid-template-columns: 1fr;
+  }
+  /* 🟢 [軽微] 左ナビも display: none で非表示。
+       ハンバーガーメニュー等代替ナビへの切り替えも検討するとユーザビリティが向上する。 */
+  .leftNav {
+    display: none;
+  }
+}
+
+/* ---------- レイアウト列 ---------- */
+.leftNav {
+  grid-column: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.main {
+  grid-column: 2;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.right {
+  grid-column: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ---------- サイドナビゲーション ---------- */
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  color: var(--color-muted, #6B7280);
+  text-decoration: none;
+  font-weight: 500;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.navItem:hover {
+  background-color: var(--muted-ghost, #F3F4F6);
+  color: var(--color-primary, #0B3D91);
+}
+
+.navItemActive {
+  background-color: #E0E7FF;
+  color: var(--color-primary, #0B3D91);
+}
+
+/* ---------- パンくずリスト ---------- */
+.breadcrumb {
+  font-size: 0.875rem;
+  color: var(--color-muted, #6B7280);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.breadcrumbSep {
+  color: #D1D5DB;
+}
+
+/* ---------- 記事ヘッダー ---------- */
+.articleHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.articleTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text, #111827);
+  margin: 0;
+}
+
+.articleMeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.875rem;
+  color: var(--color-muted, #6B7280);
+}
+
+/* ---------- バッジ ---------- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badgePublished {
+  background-color: #D1FAE5;
+  color: #065F46;
+}
+
+.badgeDraft {
+  background-color: #F3F4F6;
+  color: #374151;
+}
+
+.badgeReview {
+  background-color: #FFEDD5;
+  color: #9A3412;
+}
+
+.badgeDeclined {
+  background-color: #FEE2E2;
+  color: #991B1B;
+}
+
+/* ---------- アクションボタン群 ---------- */
+.headerActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btnOutline {
+  background: #FFFFFF;
+  border: 1px solid #E6E9EE;
+  border-radius: 8px;
+  padding: 6px 16px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  color: var(--color-text, #111827);
+  transition: box-shadow 0.2s;
+}
+
+.btnOutline:hover {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.btnLiked {
+  color: #EF4444;
+  border-color: #FECACA;
+  background-color: #FFF1F2;
+}
+
+/* ---------- 記事本文カード ---------- */
+.articleCard {
+  background: var(--color-surface, #fff);
+  border: 1px solid #E6E9EE;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.articleBody {
+  font-size: 0.9375rem;
+  line-height: 1.8;
+  color: var(--color-text, #111827);
+  white-space: pre-wrap;
+}
+
+/* 添付ファイル */
+.attachments {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #E6E9EE;
+}
+
+.attachmentsLabel {
+  font-size: 0.875rem;
+  color: var(--color-muted, #6B7280);
+  margin-bottom: 8px;
+}
+
+.attachmentChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #F3F6F9;
+  border: 1px solid #E6E9EE;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--color-text, #111827);
+}
+
+/* ---------- AI要約カード ---------- */
+.aiCard {
+  background: #F0F7FF;
+  border: 1px solid #BFDBFE;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.aiCardTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1D4ED8;
+  margin: 0 0 12px 0;
+}
+
+.aiSummaryList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.aiSummaryItem {
+  font-size: 0.875rem;
+  color: #1E3A5F;
+  display: flex;
+  gap: 8px;
+}
+
+.aiSummaryItem::before {
+  content: "•";
+  color: #2A9DF4;
+  font-weight: bold;
+}
+
+/* ---------- コメントカード ---------- */
+.commentCard {
+  background: var(--color-surface, #fff);
+  border: 1px solid #E6E9EE;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.commentCardTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.commentList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.commentItem {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #E6E9EE;
+  background: #FBFDFF;
+}
+
+.commentAuthor {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #111827;
+}
+
+.commentBody {
+  font-size: 0.875rem;
+  color: #374151;
+  margin: 4px 0;
+}
+
+.commentFooter {
+  display: flex;
+  gap: 12px;
+  font-size: 0.75rem;
+  color: var(--color-muted, #6B7280);
+}
+
+.commentLikeBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-muted, #6B7280);
+  font-size: 0.75rem;
+  padding: 0;
+}
+
+.commentLikeBtn:hover {
+  color: #EF4444;
+}
+
+/* コメント入力フォーム */
+.commentForm {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.commentInput {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #E6E9EE;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  background: #F3F6F9;
+  color: #111827;
+  resize: none;
+  min-height: 56px;
+}
+
+.commentInput::placeholder {
+  color: #9CA3AF;
+}
+
+.commentInput:focus {
+  outline: none;
+  border-color: #6fb1ff;
+  background: #FFFFFF;
+}
+
+.commentSubmitBtn {
+  padding: 10px 16px;
+  background: var(--color-primary, #0B3D91);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.commentSubmitBtn:hover {
+  opacity: 0.9;
+}
+
+.commentSubmitBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---------- サイドバーカード ---------- */
+.sidebarCard {
+  background: var(--color-surface, #fff);
+  border: 1px solid #E6E9EE;
+  padding: 16px;
+  border-radius: 12px;
+}
+
+.sidebarTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+  color: #111827;
+}
+
+.authorName {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 4px 0;
+}
+
+.authorMeta {
+  font-size: 0.875rem;
+  color: var(--color-muted, #6B7280);
+}
+
+/* 関連記事リスト */
+.relatedList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.relatedItem a {
+  font-size: 0.875rem;
+  color: var(--color-primary, #0B3D91);
+  text-decoration: none;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.relatedItem a::before {
+  content: "•";
+  color: #9CA3AF;
+}
+
+.relatedItem a:hover {
+  text-decoration: underline;
+}
+
+/* 管理操作 */
+.adminLabel {
+  font-size: 0.875rem;
+  color: var(--color-muted, #6B7280);
+  margin: 0 0 12px 0;
+}
+
+.adminActions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.btnAdmin {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #E6E9EE;
+  font-size: 0.875rem;
+  cursor: pointer;
+  background: #FFFFFF;
+  color: #111827;
+  text-align: left;
+}
+
+.btnAdmin:hover {
+  background: #F3F4F6;
+}
+
+.btnAdminDanger {
+  color: #B91C1C;
+  border-color: #FECACA;
+}
+
+.btnAdminDanger:hover {
+  background: #FFF1F2;
+}
