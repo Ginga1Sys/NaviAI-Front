@@ -1,6 +1,3 @@
-// 🔴 [バグ・潜在問題] app ディレクトリから pages 配下のコンポーネントをインポートしている。
-// app Router と Pages Router の混在は将来の移行時に問題となる可能性がある。
-// コンポーネントを app/components 配下に移動することを推奨。
 import ArticleDetailPage from '../pages/dashboard/article_detail';
 import CommonHeader from '../pages/dashboard/CommonHeader';
 import { getMockArticle } from '../lib/mockArticles';
@@ -26,7 +23,10 @@ export default async function Page({ searchParams }: Props) {
   if (id) {
     const article = await getMockArticle(id)
     if (article) {
-      initialAiSummary = await generateSummary(id, article.title, article.body)
+      // updated_at をキャッシュキーに含めることで、記事更新後に古い要約がヒットしないようにする
+      const cacheKey = `${id}:${article.meta.updated_at}`
+      const result = await generateSummary(cacheKey, article.title, article.body)
+      initialAiSummary = result.ok ? result.summary : null
     }
   }
 

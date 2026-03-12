@@ -4,9 +4,12 @@
  * 環境変数:
  *   JWT_PUBLIC_KEY  - RSA 公開鍵 PEM 文字列（RS256 推奨、本番必須）
  *   JWT_SECRET      - HMAC シークレット文字列（HS256 フォールバック）
+ *   ALLOW_DEV_AUTH  - 'true' のとき NODE_ENV=development での JWT スキップを許可する。
+ *                     .env.local にのみ設定し、本番・CI/staging では絶対に設定しないこと。
  *
  * どちらも未設定の場合:
- *   - NODE_ENV=development のときは検証をスキップし開発用ダミーペイロードを返す
+ *   - NODE_ENV=development かつ ALLOW_DEV_AUTH=true のときのみ検証をスキップし
+ *     開発用ダミーペイロードを返す
  *   - それ以外では null を返す（認証拒否）
  *
  * 参照: docs/nagumo/article_details/基本設計_API.md 「4. 認証・認可」
@@ -37,12 +40,13 @@ export async function verifyAuth(request: NextRequest): Promise<AuthPayload | nu
   const publicKeyPem = process.env.JWT_PUBLIC_KEY
   const secret = process.env.JWT_SECRET
 
-  // 開発モード: 鍵が未設定の場合は検証をスキップ
+  // 開発モード: 鍵が未設定 かつ ALLOW_DEV_AUTH=true のときのみ検証をスキップ
+  // ⚠️  ALLOW_DEV_AUTH は .env.local にのみ設定し、本番・CI/staging では設定しないこと
   if (!publicKeyPem && !secret) {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'development' && process.env.ALLOW_DEV_AUTH === 'true') {
       console.warn(
-        '[serverAuth] JWT_PUBLIC_KEY / JWT_SECRET が未設定です。' +
-        '開発モードのため JWT 検証をスキップします。'
+        '[serverAuth] ⚠️  ALLOW_DEV_AUTH=true: JWT 検証をスキップしています（開発環境専用）。' +
+        '本番・CI/staging では ALLOW_DEV_AUTH を設定しないでください。'
       )
       return { sub: 'dev-user', role: 'user' }
     }

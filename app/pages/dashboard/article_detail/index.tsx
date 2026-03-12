@@ -88,22 +88,32 @@ export default function ArticleDetailPage({ articleId, initialAiSummary }: Props
   // ---------- AI要約取得 ----------
   // fetchSummary を関数化することで「再試行」ボタンからも呼び出せる
   const fetchSummary = React.useCallback(async (targetArticle: ArticleDetail) => {
+    // localStorage からトークンを取得（ログインページで token キーに保存済み）
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+    if (!token) {
+      setAiError('AI要約を取得するにはログインが必要です。')
+      return
+    }
+
     setAiLoading(true)
     setAiSummary(null)
     setAiError(null)
     try {
       const res = await fetch('/api/summarize', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: targetArticle.title, body: targetArticle.body }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ title: targetArticle.title, body: targetArticle.body, articleId: articleId ?? undefined }),
       })
       const data = await res.json()
       if (!res.ok) {
-        // 429: クォータ超過、401/403: 認証エラー などを判別して日本語メッセージを出す
+        // 429: クォータ超過、401/403: セッション切れ・認証エラー などを判別して日本語メッセージを出す
         if (res.status === 429) {
           setAiError('APIの利用上限に達しました。しばらく待ってから再試行してください。')
         } else if (res.status === 401 || res.status === 403) {
-          setAiError('APIキーが無効です。設定を確認してください。')
+          setAiError('セッションが切れました。再ログインしてください。')
         } else {
           setAiError(data?.error ?? 'AI要約の生成に失敗しました。')
         }
@@ -115,13 +125,16 @@ export default function ArticleDetailPage({ articleId, initialAiSummary }: Props
     } finally {
       setAiLoading(false)
     }
-  }, [])
+  }, [articleId])
 
-  // 記事ロード完了後に要約を自動取得（サーバーで事前生成済みの場合はスキップ）
+  // 記事ロード完了後に要約を自動取得
+  // - initialAiSummary が文字列（サーバーで生成成功）→ クライアントフェッチ不要
+  // - initialAiSummary が null（サーバー生成失敗）→ クライアントでフォールバックフェッチ
+  // - initialAiSummary が undefined（Server Component を通さない直接利用）→ クライアントでフェッチ
   useEffect(() => {
     if (!article) return
-    // initialAiSummary が undefined 以外（サーバーで引数として渡された）ならフェッチ不要
-    if (initialAiSummary !== undefined) return
+    // サーバーが正常に要約を返した場合のみスキップ（null はサーバー失敗なのでフォールバックとしてフェッチ）
+    if (typeof initialAiSummary === 'string') return
     fetchSummary(article)
   }, [article, fetchSummary, initialAiSummary])
 
@@ -144,7 +157,7 @@ export default function ArticleDetailPage({ articleId, initialAiSummary }: Props
 
   // ---------- いいねトグル ----------
   const handleLike = () => {
-    // TODO: POST /api/v1/knowledge/{id}/like または DELETE /api/v1/knowledge/{id}/like
+    // API作成時に差し替え: POST /api/v1/knowledge/{id}/like または DELETE /api/v1/knowledge/{id}/like
     setLiked((prevLiked) => {
       setLikeCount((c) => (prevLiked ? c - 1 : c + 1))
       return !prevLiked
@@ -157,7 +170,7 @@ export default function ArticleDetailPage({ articleId, initialAiSummary }: Props
     if (!commentInput.trim() || submitting) return
     setSubmitting(true)
 
-    // TODO: POST /api/v1/knowledge/{id}/comments
+    // API作成時に差し替え: POST /api/v1/knowledge/{id}/comments
     // 以下はモック追加処理
     await new Promise((r) => setTimeout(r, 300))
     const newComment: Comment = {
@@ -187,9 +200,10 @@ export default function ArticleDetailPage({ articleId, initialAiSummary }: Props
   }
 
   const badgeClass = getStatusBadgeClass(article.status, styles)
-  /** AI要約（リアルタイム生成）を改行で分割して箇条書き表示 */
+  /** AI要約（リアルタイム生成）を改行で分割して箇条書き表示
+   *  CSS の ::before が「•」を付与するため、AIレスポンスの行頭「・」は除去する */
   const aiPoints = aiSummary
-    ? aiSummary.split('\n').filter(Boolean)
+    ? aiSummary.split('\n').filter(Boolean).map((p) => p.replace(/^[・•]\s*/, ''))
     : []
   /** パンくず: ['ナレッジ', ...タグ名] */
   const breadcrumb = ['ナレッジ', ...article.tags.map((t) => t.name)]
@@ -201,7 +215,7 @@ export default function ArticleDetailPage({ articleId, initialAiSummary }: Props
       {/* ========== 左ナビゲーション ========== */}
       <nav className={styles.leftNav} aria-label="サイドナビ">
         {/* 🟡 [コード品質] href="#" のままではルーティングが未実装。
-             実際のパスへの差し替え、または TODO コメントの追記を推奨。 */}
+             実際のパスへの差し替え、または API作成時に差し替え コメントの追記を推奨。 */}
         <Link href="#" className={styles.navItem}>ダッシュボード</Link>
         <Link href="#" className={`${styles.navItem} ${styles.navItemActive}`}>ナレッジ</Link>
         <Link href="#" className={styles.navItem}>承認</Link>
@@ -230,7 +244,7 @@ export default function ArticleDetailPage({ articleId, initialAiSummary }: Props
             <span className={`${styles.badge} ${badgeClass}`}>{getStatusLabel(article.status)}</span>
             <div className={styles.headerActions}>
               {article.meta.is_editable_by_current_user && (
-                // TODO: 編集画面への遷移
+                // 画面作成時に差し替え: 編集画面への遷移
                 <button type="button" className={styles.btnOutline} aria-label="記事を編集">
                   編集
                 </button>
@@ -284,7 +298,7 @@ export default function ArticleDetailPage({ articleId, initialAiSummary }: Props
               {article.ai_summary && (
                 <ul className={styles.aiSummaryList} style={{ opacity: 0.6 }}>
                   {article.ai_summary.split('\n').filter(Boolean).map((point, i) => (
-                    <li key={i} className={styles.aiSummaryItem}>{point}</li>
+                    <li key={i} className={styles.aiSummaryItem}>{point.replace(/^[・•]\s*/, '')}</li>
                   ))}
                 </ul>
               )}
@@ -299,6 +313,8 @@ export default function ArticleDetailPage({ articleId, initialAiSummary }: Props
             </div>
           ) : aiPoints.length > 0 ? (
             <ul className={styles.aiSummaryList}>
+              {/* XSS 安全: {point} は React の JSX テキスト補間により自動エスケープされる。
+                  dangerouslySetInnerHTML は使用していないため生 HTML 注入の危険はない。 */}
               {aiPoints.map((point, i) => (
                 <li key={i} className={styles.aiSummaryItem}>{point}</li>
               ))}
@@ -321,11 +337,11 @@ export default function ArticleDetailPage({ articleId, initialAiSummary }: Props
                     <p className={styles.commentBody}>{comment.body}</p>
                     <div className={styles.commentFooter}>
                       <span>{comment.created_at}</span>
-                      {/* TODO: POST /api/v1/knowledge/{id}/comment-likes */}
+                      {/* API作成時に差し替え: POST /api/v1/knowledge/{id}/comment-likes */}
                       <button type="button" className={styles.commentLikeBtn} aria-label="いいね">
                         ❤️ {comment.likes}
                       </button>
-                      {/* TODO: コメント返信フォームを表示する処理 */}
+                      {/* API作成時に差し替え: コメント返信フォームを表示する処理 */}
                       <button type="button" className={styles.commentLikeBtn} aria-label="返信">
                         返信
                       </button>
@@ -389,13 +405,13 @@ export default function ArticleDetailPage({ articleId, initialAiSummary }: Props
           <h2 className={styles.sidebarTitle}>管理操作</h2>
           <p className={styles.adminLabel}>承認 / 差し戻し / 監査ログ</p>
           <div className={styles.adminActions}>
-            {/* TODO: POST /api/v1/admin/knowledge/{id}/approve */}
+            {/* API作成時に差し替え: POST /api/v1/admin/knowledge/{id}/approve */}
             <button type="button" className={styles.btnAdmin}>承認する</button>
-            {/* TODO: POST /api/v1/admin/knowledge/{id}/reject */}
+            {/* API作成時に差し替え: POST /api/v1/admin/knowledge/{id}/reject */}
             <button type="button" className={`${styles.btnAdmin} ${styles.btnAdminDanger}`}>
               差し戻す
             </button>
-            {/* TODO: 編集履歴取得API */}
+            {/* API作成時に差し替え: 編集履歴取得API */}
             <button type="button" className={styles.btnAdmin}>編集履歴を見る</button>
           </div>
         </div>

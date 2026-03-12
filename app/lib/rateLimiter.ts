@@ -20,6 +20,37 @@ type RateLimitEntry = {
 
 const store = new Map<string, RateLimitEntry>()
 
+/** 期限切れエントリを定期削除する間隔（10 分） */
+const CLEANUP_INTERVAL_MS = 10 * 60_000
+
+/**
+ * 期限切れ（resetAt が現在時刻より古い）エントリを Map から削除する。
+ * Next.js の Node.js ランタイム起動時に一度だけ setInterval を登録する。
+ * テスト環境など globalThis に登録済みの場合は再登録しない。
+ */
+function scheduleCleanup(): void {
+  // モジュールが複数回評価されても重複登録しないようにフラグで管理
+  const FLAG = Symbol.for('rateLimiter.cleanupScheduled')
+  if ((globalThis as Record<symbol, unknown>)[FLAG]) return
+  ;(globalThis as Record<symbol, unknown>)[FLAG] = true
+
+  const timer = setInterval(() => {
+    const now = Date.now()
+    for (const [key, entry] of store) {
+      if (entry.resetAt < now) {
+        store.delete(key)
+      }
+    }
+  }, CLEANUP_INTERVAL_MS)
+
+  // Node.js / Edge Runtime では unref() でプロセス終了をブロックしない
+  if (typeof timer === 'object' && timer !== null && 'unref' in timer) {
+    (timer as NodeJS.Timeout).unref()
+  }
+}
+
+scheduleCleanup()
+
 export type RateLimitResult = {
   /** リクエストを許可するかどうか */
   allowed: boolean
