@@ -142,3 +142,35 @@
 }
 
 .helpSub { margin-top: 6px }
+
+.helpLink {
+  color: #0b5fff;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.fieldHint {
+  font-size: 0.8rem;
+  font-weight: 400;
+  margin-left: 6px;
+  opacity: 0.85;
+}
+
+.successMessage {
+  background: #d4f0d4;
+  border: 1px solid #5bb85b;
+  border-radius: 8px;
+  color: #1a5c1a;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.pageHeading {
+  text-align: center;
+  color: #ffffff;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0 0 20px 0;
+}

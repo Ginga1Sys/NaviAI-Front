@@ -1,5 +1,37 @@
 version: '3.8'
+
 services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  backend-app:
+    build:
+      context: ../NaviAI-Back/app
+      dockerfile: Dockerfile.test
+    env_file:
+      - .env
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      # Gmail SMTP設定（.envファイルから読み込み）
+      - SPRING_MAIL_HOST=smtp.gmail.com
+      - SPRING_MAIL_PORT=587
+      - SPRING_MAIL_USERNAME=${GMAIL_ADDRESS}
+      - SPRING_MAIL_PASSWORD=${GMAIL_APP_PASSWORD}
+    depends_on:
+      redis:
+        condition: service_healthy
+    command: mvn -f pom.xml -DskipTests spring-boot:run
+    ports:
+      - "8080:8080"
+
   frontend:
     image: node:24.13.0-alpine
     working_dir: /usr/src/app
@@ -11,4 +43,8 @@ services:
     environment:
       - NODE_ENV=development
       - HOST=0.0.0.0
+      # バックエンドへのプロキシ先URL（コンテナ間通信はサービス名で解決）
+      - BACKEND_URL=http://backend-app:8080
+    depends_on:
+      - backend-app
     command: sh -c "npm install --no-audit --no-fund && npm run dev -- -H 0.0.0.0"
