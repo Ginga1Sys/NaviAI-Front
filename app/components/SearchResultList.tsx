@@ -2,20 +2,12 @@
 
 import React from "react"
 import Link from "next/link"
+import { type Article } from "../lib/types"
 import styles from "../styles/search_list.module.css"
 
 // ──────────────────────────────────────────────
 // 型定義
 // ──────────────────────────────────────────────
-
-export type Article = {
-  id: number | string
-  title: string
-  excerpt?: string
-  author?: string
-  publishedAt?: string
-  tags?: string[]
-}
 
 type Props = {
   articles: Article[]

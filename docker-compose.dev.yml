@@ -20,8 +20,6 @@ services:
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      # H2のdata.sqlをJPA初期化後に実行するための設定
-      - SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION=true
       # Gmail SMTP設定（.envファイルから読み込み）
       - SPRING_MAIL_HOST=smtp.gmail.com
       - SPRING_MAIL_PORT=587

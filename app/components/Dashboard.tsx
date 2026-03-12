@@ -5,19 +5,12 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Sidebar from "./Sidebar"
 import fetcher from "../lib/fetcher"
+import { type Article, type ListApiResponse, normalizeListResponse } from "../lib/types"
 import styles from "../styles/dashboard.module.css"
 
 // ──────────────────────────────────────────────
 // 型定義
 // ──────────────────────────────────────────────
-
-type Article = {
-  id: number | string
-  title: string
-  excerpt?: string
-  author?: string
-  publishedAt?: string
-}
 
 type SummaryData = {
   totalPosts?: number
@@ -45,11 +38,7 @@ type WeeklyActivityTotals = {
   likes: number
 }
 
-type ArticleApiResponse = {
-  content?: Article[]
-  data?: Article[]
-  items?: Article[]
-} | Article[]
+type ArticleApiResponse = ListApiResponse<Article>
 
 // ──────────────────────────────────────────────
 // サブコンポーネント: 記事カード
@@ -80,13 +69,16 @@ function ArticleCard({ article }: { article: Article }) {
 
 export default function Dashboard() {
   const router = useRouter()
+  const [authChecked, setAuthChecked] = useState(false)
 
   // 認証ガード: トークン未存在の場合は /login へリダイレクト
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (!token) {
       router.replace('/login')
+      return
     }
+    setAuthChecked(true)
   }, [router])
 
   // 記事データ
@@ -131,18 +123,9 @@ export default function Dashboard() {
           fetcher<ArticleApiResponse>("/api/v1/knowledge?filter=recommended&size=1"),
         ])
         if (cancelled) return
-        const toArray = (res: ArticleApiResponse): Article[] => {
-          if (Array.isArray(res)) return res
-          return (
-            (res as { content?: Article[]; data?: Article[] }).content ??
-            (res as { content?: Article[]; data?: Article[] }).data ??
-            (res as { items?: Article[] }).items ??
-            []
-          )
-        }
-        const recommendedArr = toArray(recommendedRes)
+        const recommendedArr = normalizeListResponse(recommendedRes)
         setRecommendedArticle(recommendedArr[0] ?? null)
-        setLatestArticles(toArray(latestRes).slice(0, 3))
+        setLatestArticles(normalizeListResponse(latestRes).slice(0, 3))
       } catch {
         if (!cancelled) setArticlesError("記事の取得に失敗しました。")
       } finally {
@@ -191,6 +174,8 @@ export default function Dashboard() {
     loadSummary()
     return () => { cancelled = true }
   }, [])
+
+  if (!authChecked) return null
 
   return (
     <div className={styles.container}>

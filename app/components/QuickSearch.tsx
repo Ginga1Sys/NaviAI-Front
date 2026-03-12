@@ -3,19 +3,13 @@
 import React, { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import fetcher from "../lib/fetcher"
+import { type Article, type ListApiResponse, normalizeListResponse } from "../lib/types"
 import quickSearchStyles from "./QuickSearch.module.css"
 
 /** GET /api/v1/knowledge のレスポンス型（配列要素） */
-type KnowledgeItem = {
-  id: number | string
-  title: string
-  excerpt?: string
-}
+type KnowledgeItem = Article
 
-type ApiResponse = {
-  content?: KnowledgeItem[]
-  data?: KnowledgeItem[]
-} | KnowledgeItem[]
+type ApiResponse = ListApiResponse<KnowledgeItem>
 
 /** サジェスト付きクイック検索コンポーネント */
 export default function QuickSearch() {
@@ -55,11 +49,7 @@ export default function QuickSearch() {
         const res = await fetcher<ApiResponse>(
           `/api/v1/knowledge?q=${encodeURIComponent(query.trim())}&size=5`
         )
-        const items: KnowledgeItem[] = Array.isArray(res)
-          ? res
-          : (res as { content?: KnowledgeItem[]; data?: KnowledgeItem[] }).content ??
-            (res as { content?: KnowledgeItem[]; data?: KnowledgeItem[] }).data ??
-            []
+        const items = normalizeListResponse(res)
         setSuggestions(items)
         setOpen(items.length > 0)
       } catch (err: unknown) {
@@ -77,7 +67,7 @@ export default function QuickSearch() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!query.trim()) return
-    router.push(`/search?query=${encodeURIComponent(query.trim())}`)
+    router.push(`/search_list?q=${encodeURIComponent(query.trim())}`)
     setOpen(false)
   }
 

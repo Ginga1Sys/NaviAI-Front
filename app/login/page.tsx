@@ -28,23 +28,9 @@ export default function LoginPage() {
       localStorage.setItem("refreshToken", res.refreshToken)
 
       // 3. ユーザー情報取得（管理者判定含む）
-      const mePromise = fetcher<{ id: number; username: string; email: string; displayName: string; roles?: string[]; isAdmin?: boolean }>("/api/v1/users/me")
+      const me = await fetcher<{ id: number; username: string; email: string; displayName: string; roles?: string[]; isAdmin?: boolean }>("/api/v1/users/me")
 
-      // 4. ダッシュボード・アクティビティ・ナレッジを並列取得
-      const toDate = new Date()
-      const fromDate = new Date(toDate)
-      fromDate.setDate(fromDate.getDate() - 7)
-      const toStr = toDate.toISOString().slice(0, 10)
-      const fromStr = fromDate.toISOString().slice(0, 10)
-
-      const [me] = await Promise.all([
-        mePromise,
-        fetcher("/api/v1/dashboard").catch(() => null),
-        fetcher(`/api/v1/dashboard/activity?from=${fromStr}&to=${toStr}`).catch(() => null),
-        fetcher("/api/v1/knowledge?recommend=1&recent=3").catch(() => null),
-      ])
-
-      // 5. ユーザー情報をストレージへ保存（管理者フラグ含む）
+      // 4. ユーザー情報をストレージへ保存（管理者フラグ含む）
       localStorage.setItem("currentUser", JSON.stringify(me))
 
       router.push("/dashboard")

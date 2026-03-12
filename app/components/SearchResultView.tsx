@@ -3,9 +3,10 @@
 import React, { useCallback, useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Sidebar from "./Sidebar"
-import SearchResultList, { Article } from "./SearchResultList"
-import SearchSidebar, { Tag } from "./SearchSidebar"
+import SearchResultList from "./SearchResultList"
+import SearchSidebar from "./SearchSidebar"
 import fetcher from "../lib/fetcher"
+import { type Article, type ListApiResponse, type Tag, normalizeListResponse } from "../lib/types"
 import dashStyles from "../styles/dashboard.module.css"
 import styles from "../styles/search_list.module.css"
 
@@ -23,10 +24,7 @@ type KnowledgeApiResponse = {
   totalCount?: number
 } | Article[]
 
-type TagApiResponse = {
-  content?: Tag[]
-  data?: Tag[]
-} | Tag[]
+type TagApiResponse = ListApiResponse<Tag>
 
 const PAGE_SIZE = 20
 
@@ -93,15 +91,23 @@ export default function SearchResultView() {
 
   // ── URL を更新してクエリパラメータを反映する ──
   const pushUrl = useCallback(
-    (newQuery: string, newTags: string[], newPage: number) => {
+    (
+      newQuery: string,
+      newTags: string[],
+      newPage: number,
+      curType: "new" | "recommended" | null = type,
+      curLimit: number | null = limit,
+    ) => {
       const params = new URLSearchParams()
       if (newQuery.trim()) params.set("q", newQuery.trim())
       if (newTags.length > 0) params.set("tags", newTags.join(","))
+      if (curType) params.set("type", curType)
+      if (curLimit) params.set("limit", String(curLimit))
       if (newPage > 1) params.set("page", String(newPage))
       const qs = params.toString()
       router.push(`/search_list${qs ? `?${qs}` : ""}`)
     },
-    [router],
+    [router, type, limit],
   )
 
   // ── 検索 API 呼び出し ──
@@ -132,11 +138,7 @@ export default function SearchResultView() {
           setTotalCount(res.length)
           setTotalPages(1)
         } else {
-          const items =
-            (res as { content?: Article[]; data?: Article[] }).content ??
-            (res as { content?: Article[]; data?: Article[] }).data ??
-            (res as { items?: Article[] }).items ??
-            []
+          const items = normalizeListResponse(res)
           setArticles(items)
 
           const total =
@@ -169,11 +171,7 @@ export default function SearchResultView() {
       try {
         const res = await fetcher<TagApiResponse>("/api/v1/tags")
         if (cancelled) return
-        const items: Tag[] = Array.isArray(res)
-          ? res
-          : (res as { content?: Tag[]; data?: Tag[] }).content ??
-            (res as { content?: Tag[]; data?: Tag[] }).data ??
-            []
+        const items = normalizeListResponse(res)
         setTags(items)
       } catch {
         // タグ取得失敗はサイレントに処理

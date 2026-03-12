@@ -13,6 +13,8 @@ type Props = {
   onSuccess?: () => void
 }
 
+const ALLOWED_EMAIL_DOMAIN = "ginga.info"
+
 export default function RegisterForm({ onSuccess }: Props) {
   const idPrefix = useId()
 
@@ -40,11 +42,11 @@ export default function RegisterForm({ onSuccess }: Props) {
       errs.name = "必須項目です。"
     }
 
-    const emailRe = /^[A-Za-z0-9._%+-]+@ginga\.info$/
+    const emailRe = new RegExp(`^[A-Za-z0-9._%+-]+@${ALLOWED_EMAIL_DOMAIN}$`)
     if (!email.trim()) {
       errs.email = "必須項目です。"
     } else if (!emailRe.test(email.trim())) {
-      errs.email = "@ginga.info ドメインのメールアドレスを入力してください。"
+      errs.email = `@${ALLOWED_EMAIL_DOMAIN} ドメインのメールアドレスを入力してください。`
     }
 
     if (!password) {
@@ -134,7 +136,7 @@ export default function RegisterForm({ onSuccess }: Props) {
       <div className={styles.field}>
         <label className={styles.label} htmlFor={`${idPrefix}-email`}>
           メールアドレス
-          <span className={styles.fieldHint}>（@ginga.info ドメインのみ）</span>
+          <span className={styles.fieldHint}>{`（@${ALLOWED_EMAIL_DOMAIN} ドメインのみ）`}</span>
         </label>
         <input
           className={styles.input}
@@ -150,7 +152,7 @@ export default function RegisterForm({ onSuccess }: Props) {
           aria-invalid={!!fieldErrors.email}
           aria-describedby={fieldErrors.email ? `${idPrefix}-email-error` : undefined}
           autoComplete="email"
-          placeholder="例: taro@ginga.info"
+          placeholder={`例: taro@${ALLOWED_EMAIL_DOMAIN}`}
         />
         {fieldErrors.email && (
           <div id={`${idPrefix}-email-error`} role="alert" className={styles.fieldError}>

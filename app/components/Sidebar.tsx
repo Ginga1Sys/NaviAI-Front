@@ -57,10 +57,12 @@ export default function Sidebar({ activeItem = 'dashboard' }: Props) {
   const handleLogout = async () => {
     try {
       const refreshToken = localStorage.getItem('refreshToken')
-      await fetcher('/api/v1/auth/logout', {
-        method: 'POST',
-        body: JSON.stringify({ refreshToken }),
-      })
+      if (refreshToken) {
+        await fetcher('/api/v1/auth/logout', {
+          method: 'POST',
+          body: JSON.stringify({ refreshToken }),
+        })
+      }
     } catch {
       // ログアウト API 失敗時もクライアント側は必ずクリア
     } finally {

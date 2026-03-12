@@ -3,19 +3,11 @@
 import React, { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import fetcher from "../lib/fetcher"
+import { type ListApiResponse, type Tag, normalizeListResponse } from "../lib/types"
 import quickTagsStyles from "./QuickTags.module.css"
 
 /** GET /api/v1/tags のレスポンス型（配列要素） */
-type Tag = {
-  id: number | string
-  name: string
-  count?: number
-}
-
-type ApiResponse = {
-  content?: Tag[]
-  data?: Tag[]
-} | Tag[]
+type ApiResponse = ListApiResponse<Tag>
 
 /** クイック操作（タグ一覧）コンポーネント */
 export default function QuickTags() {
@@ -30,11 +22,7 @@ export default function QuickTags() {
       try {
         const res = await fetcher<ApiResponse>("/api/v1/tags")
         if (cancelled) return
-        const items: Tag[] = Array.isArray(res)
-          ? res
-          : (res as { content?: Tag[]; data?: Tag[] }).content ??
-            (res as { content?: Tag[]; data?: Tag[] }).data ??
-            []
+        const items = normalizeListResponse(res)
         setTags(items)
       } catch (err: unknown) {
         if (!cancelled) setError("タグの取得に失敗しました。")
@@ -47,7 +35,7 @@ export default function QuickTags() {
   }, [])
 
   function handleTagClick(tag: Tag) {
-    router.push(`/search?tag=${encodeURIComponent(tag.name)}`)
+    router.push(`/search_list?tags=${encodeURIComponent(tag.name)}`)
   }
 
   return (
