@@ -27,7 +27,7 @@
       - ログアウト追加: サイドバー最下部に「ログアウト」ボタンを追加。クリック時に `POST /api/v1/auth/logout` を呼び出し（失敗時もクライアント内のクリアは必実施）、localStorage（`token`/`refreshToken`/`currentUser`/`leftNavOpen`）を削除して `/login` へリダイレクト。
   - lib/
     - auth.ts: フロントエンドの認証ユーティリティ。`POST /api/v1/auth/login` 呼び出し（リクエスト: `{ email, password }`、レスポンス: `{ accessToken, refreshToken, expiresIn, user }`）。`UserResponse` ・ `LoginResponse` 型定義を提供。
-    - fetcher.ts: 汎用 fetch ユーティリティ（Authorization ヘッダー自動付与、非 OK レスポンス例外化）。
+    - fetcher.ts: 汎用 fetch ユーティリティ（Authorization ヘッダー自動付与、非 OK レスポンス例外化）。`skipAuth: true` オプションで認証ヘッダーをスキップ可能（公開エンドポイント `/api/v1/public/**` 向け）。
     - mockPosts.ts: 開発/テスト用のモック投稿データ。
   - dashboard/
     - page.tsx: `/dashboard` 用のページ。`CommonHeader` と `Dashboard` コンポーネントをレンダリング。
@@ -47,6 +47,8 @@
     - page.tsx: マイ投稿一覧ページのエントリ。`MyPostList` を使用してユーザー投稿を表示。
   - search_list/
     - page.tsx: `/search_list` 用の検索結果一覧ページ（SCR-04）。`CommonHeader` と `SearchResultView`（`<Suspense>` でラップ）をレンダリング。URL クエリパラメータ: `q`（キーワード）、`tags`（カンマ区切りタグ）、`page`（ページ番号）。
+  - public-home/
+    - page.tsx: `/public-home` 用の公開トップページ（SCR-12、App Router）。`/api/v1/public/knowledge/recommended?limit=1` から今週の注目を取得し、`/api/v1/public/knowledge?page=0&size=2` と `/api/v1/public/tags` で公開記事2件とタグを表示する。
   - pages/
     - dashboard/
       - common_header.html: ダッシュボード共通の静的ヘッダー（HTMLスニペット）。
@@ -59,7 +61,7 @@
       - index.tsx: Pages ルーターのログインページ（`LoginForm` を組み合わせて使用）。
       - login.module.css: ログインページのスタイル。
     - public-home/
-      - index.tsx: 非ログイン向けの公開トップページ（紹介・CTA・サンプル記事表示）。
+      - index.tsx: 未ログイン向けの公開トップページ（SCR-12）。`/api/v1/public/knowledge/recommended?limit=1`（`skipAuth: true`）で「今週の注目」を取得し、`/api/v1/public/knowledge?page=0&size=2` と `/api/v1/public/tags`（いずれも `skipAuth: true`）から公開記事2件とタグを取得して表示する。未認証時は「ログインして続きを読む」でログイン画面へ誘導し、認証済み時は記事リンクへ遷移する。右上の会員訴求ブロックは削除済み。
       - common_module.css: 公開トップ専用のスタイルシート（SCR-12）。
 
 注記:
