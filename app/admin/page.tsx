@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { AdminSidebar } from "./components/AdminSidebar"
 import { PreviewPanel } from "./components/PreviewPanel"
 import { RejectModal } from "./components/RejectModal"
@@ -17,6 +17,7 @@ export default function AdminPanelPage() {
   const [rejectReason, setRejectReason] = useState("")
   const [stats, setStats] = useState(mockQuickStats)
   const [auditLogs, setAuditLogs] = useState(mockAuditLogs)
+  const [searchQuery, setSearchQuery] = useState("")
 
   const api = useMemo(
     () =>
@@ -26,6 +27,9 @@ export default function AdminPanelPage() {
       }),
     [],
   )
+
+  const itemsRef = useRef(items)
+  itemsRef.current = items
 
   const activeItem = useMemo(() => items.find((item) => item.id === activeId), [items, activeId])
 
@@ -81,7 +85,7 @@ export default function AdminPanelPage() {
     let cancelled = false
     const targetId = activeId
     if (!targetId) return
-    const current = items.find((it) => it.id === targetId)
+    const current = itemsRef.current.find((it) => it.id === targetId)
     if (!current) return
     if (current.markdownPreview) return
 
@@ -101,7 +105,7 @@ export default function AdminPanelPage() {
     return () => {
       cancelled = true
     }
-  }, [activeId, api, items])
+  }, [activeId, api])
 
   function handleToggleSelect(itemId: string) {
     setSelectedIds((prev) => {
@@ -178,13 +182,19 @@ export default function AdminPanelPage() {
 
   return (
     <div className={styles.page}>
-      <a href="#main" style={{ position: "absolute", left: -9999 }}>メインへスキップ</a>
+      <a href="#main" className={styles.a11ySkipLink}>メインへスキップ</a>
       <header className={styles.topBar}>
         <div className={styles.searchBox}>
           <span role="img" aria-label="検索">
             🔍
           </span>
-          <input type="search" placeholder="投稿タイトル・タグを検索" aria-label="投稿検索" />
+          <input
+            type="search"
+            placeholder="投稿タイトル・タグを検索"
+            aria-label="投稿検索"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
         <div aria-label="アカウント情報" style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <span>admin_demo</span>
@@ -198,6 +208,7 @@ export default function AdminPanelPage() {
         <nav className={styles.sideNav} aria-label="管理者サイドナビ">
           <h1>Ginga Admin</h1>
           <div className={styles.navLinks}>
+            {/* TODO: 各ボタンにルーティング処理を実装予定 */}
             {[
               "ダッシュボード",
               "ナレッジ",
@@ -205,12 +216,13 @@ export default function AdminPanelPage() {
               "ユーザー",
               "監査ログ",
             ].map((label) => (
-              <button key={label} className={styles.navButton} data-active={label === "承認"}>
+              <button key={label} type="button" className={styles.navButton} data-active={label === "承認"}>
                 {label}
               </button>
             ))}
           </div>
-          <button className={styles.composeButton}>
+          {/* TODO: 新規投稿画面への遷移を実装予定 */}
+          <button type="button" className={styles.composeButton}>
             <span aria-hidden>＋</span> 新規投稿
           </button>
         </nav>
@@ -263,7 +275,9 @@ export default function AdminPanelPage() {
       <RejectModal
         isOpen={Boolean(rejectModalItemId)}
         title={
-          items.find((item) => item.id === (rejectModalItemId || activeId))?.title || ""
+          selectedIds.size > 1
+            ? `${selectedIds.size}件の投稿`
+            : items.find((item) => item.id === (rejectModalItemId || activeId))?.title || ""
         }
         reason={rejectReason}
         onReasonChange={setRejectReason}

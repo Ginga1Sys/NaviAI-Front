@@ -7,6 +7,13 @@
 
 .a11ySkipLink {
   position: absolute;
+  left: -9999px;
+}
+
+.a11ySkipLink:focus {
+  left: 16px;
+  top: 8px;
+  z-index: 1000;
 }
 
 .topBar {

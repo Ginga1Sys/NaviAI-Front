@@ -19,8 +19,10 @@ export function AdminSidebar({ stats, auditLogs }: AdminSidebarProps) {
         <p style={{ color: "#6b7280", marginBottom: 12 }}>
           権限変更・ロック・検索
         </p>
+        {/* TODO: 管理者センター画面への遷移を実装予定 */}
         <button
           type="button"
+          onClick={() => { /* TODO: implement navigation */ }}
           style={{
             width: "100%",
             padding: "10px 12px",

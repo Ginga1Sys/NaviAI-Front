@@ -50,7 +50,6 @@ export function RejectModal({
             className={styles.btnReject}
             onClick={onConfirm}
             disabled={!reason.trim()}
-            aria-disabled={!reason.trim()}
           >
             却下を確定
           </button>
