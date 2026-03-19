@@ -5,7 +5,7 @@ import styles from './my_post_list.module.css'
 import { getMockPosts, Post } from '../../../lib/mockPosts'
 // import { getPosts } from '../../../lib/postsApi' // APIを呼び出す場合はこちらを有効化
 import MyPostList from '../../../components/MyPostList'
-import Link from 'next/link'
+import Sidebar from '../../../components/Sidebar'
 
 export default function MyPostListPage() {
   const [posts, setPosts] = useState<Post[] | null>(null)
@@ -49,13 +49,8 @@ export default function MyPostListPage() {
 
   return (
     <div className={styles.container}>
-      <nav className={styles.leftNav}>
-        {/* サイドナビゲーションのアイテム */}
-        <Link href="#" className={styles.navItem}>ダッシュボード</Link>
-        <Link href="#" className={styles.navItem}>ナレッジ</Link>
-        <Link href="#" className={styles.navItem}>承認</Link>
-        <Link href="#" className={`${styles.navItem} ${styles.navItemActive}`}>投稿一覧</Link>
-      </nav>
+      <Sidebar activeItem="my_post_list" />
+      <div className={styles.contentArea}>
       <main className={styles.main}>
         <div className={styles.pageHeader}>
           <h1 className={styles.pageTitle}>マイ投稿</h1>
@@ -86,6 +81,7 @@ export default function MyPostListPage() {
           </ul>
         </div>
       </aside>
+      </div>
     </div>
   )
 }

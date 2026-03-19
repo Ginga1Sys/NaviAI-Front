@@ -1,0 +1,321 @@
+/* ──────────────────────────────────────────────
+   外側ラッパー：横並び flex（サイドバー + コンテンツエリア）
+   サイドバーは左端から画面下まで伸びる
+────────────────────────────────────────────── */
+.container {
+  display: flex;
+  align-items: stretch;
+  min-height: calc(100vh - var(--topbar-height, 64px)); /* topbar 分を引いた全画面高 */
+}
+
+/* コンテンツエリア (main + right sidebar) */
+.contentArea {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+  align-items: start;
+  padding: 24px;
+  min-width: 0;
+}
+
+@media (max-width: 1024px) {
+  .contentArea {
+    grid-template-columns: 1fr;
+  }
+  .right {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .leftNav {
+    display: none;
+  }
+}
+
+/* ──────────────────────────────────────────────
+   Left nav：左端から画面下まで伸びる固定サイドバー
+────────────────────────────────────────────── */
+.leftNav {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--primary, #6fb1ff);
+  padding: 16px 8px;
+  width: 220px;
+  /* 左端から下端まで - border-radius なし */
+  border-radius: 0;
+  align-self: stretch;
+  transition: width 0.2s ease;
+}
+
+/* 閉じた状態：幅を最小化してリンクを非表示 */
+.leftNavCollapsed {
+  width: 56px;
+}
+
+.leftBrand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px 16px;
+}
+
+.brandText {
+  font-weight: 800;
+  font-size: 16px;
+  color: #000; /* per spec: 黒い太字 */
+}
+
+.sidebarToggleButton {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 2px 4px;
+}
+
+.newPostButton {
+  display: block;
+  padding: 10px 16px;
+  margin-top: 8px;
+  background: #E53E3E;
+  color: #fff;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 700;
+  text-align: center;
+}
+
+.newPostButton:hover {
+  background: #C53030;
+}
+
+.logoutButton {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  margin-top: auto;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.logoutButton:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  font-weight: 500;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.navItem:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.navItemActive {
+  background-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ──────────────────────────────────────────────
+   Main content
+────────────────────────────────────────────── */
+.main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pageTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text, #111827);
+  margin: 0;
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 12px;
+}
+
+/* ──────────────────────────────────────────────
+   Quick action buttons
+────────────────────────────────────────────── */
+.quickActions {
+  display: flex;
+  gap: 8px;
+}
+
+.quickActionBtn {
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: 1px solid var(--muted-ghost, #E6E9EE);
+  background: var(--color-surface, #fff);
+  color: #374151;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.quickActionBtn:hover,
+.quickActionBtnActive {
+  background: var(--color-primary, #0B3D91);
+  color: #fff;
+  border-color: var(--color-primary, #0B3D91);
+}
+
+/* ──────────────────────────────────────────────
+   Article card
+────────────────────────────────────────────── */
+.articleCard {
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--muted-ghost, #E6E9EE);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: var(--shadow-1, 0 1px 3px rgba(2,6,23,0.06));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.articleCardLink {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-primary, #0B3D91);
+  text-decoration: none;
+}
+
+.articleCardLink:hover {
+  text-decoration: underline;
+}
+
+.articleCardExcerpt {
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.55;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.articleCardMeta {
+  font-size: 12px;
+  color: var(--color-muted, #6B7280);
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* ──────────────────────────────────────────────
+   Right sidebar
+────────────────────────────────────────────── */
+.right {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebarCard {
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--muted-ghost, #E6E9EE);
+  padding: 16px 24px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+
+.sidebarTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 12px;
+  color: #111827;
+}
+
+/* 承認待ち件数 */
+.pendingCount {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-primary, #0B3D91);
+  margin: 0;
+  line-height: 1.1;
+}
+
+.pendingUnit {
+  font-size: 1rem;
+  font-weight: 400;
+  color: #374151;
+}
+
+/* 週次アクティビティ一覧 */
+.statList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.statItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--muted-ghost, #E6E9EE);
+  font-size: 0.875rem;
+  color: var(--color-muted, #6B7280);
+}
+
+.statItem:last-child {
+  border-bottom: none;
+}
+
+.statValue {
+  font-weight: 600;
+  color: #111827;
+}
+
+/* ──────────────────────────────────────────────
+   Loading / error
+────────────────────────────────────────────── */
+.loadingText {
+  font-size: 14px;
+  color: var(--color-muted, #6B7280);
+  margin: 0;
+}
+
+.errorText {
+  font-size: 13px;
+  color: var(--color-danger, #EF4444);
+  margin: 0;
+}
+
