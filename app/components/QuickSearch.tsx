@@ -72,7 +72,7 @@ export default function QuickSearch() {
   }
 
   function handleSelect(item: KnowledgeItem) {
-    router.push(`/knowledge/${item.id}`)
+    router.push(`/article_detail?id=${encodeURIComponent(String(item.id))}`)
     setOpen(false)
     setQuery("")
   }
