@@ -3,8 +3,8 @@
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import styles from './article_detail.module.css'
-import { getMockArticle, ArticleDetail, Comment } from '../../../lib/mockArticles'
-// import { getArticle } from '../../../lib/articlesApi' // 実APIを呼び出す場合はこちらを有効化
+import { ArticleDetail, Comment } from '../../../lib/mockArticles'
+import { getArticle } from '../../../lib/articlesApi'
 
 // ----- ユーティリティ -----
 /** ステータス（英語）に対応するバッジCSSクラスを返す */
@@ -72,12 +72,16 @@ export default function ArticleDetailPage({ articleId, initialAiSummary }: Props
       return () => { mounted = false }
     }
     setLoading(true)
-    getMockArticle(articleId).then((data) => {
+    getArticle(articleId).then((data) => {
       if (!mounted) return
       setArticle(data)
       setLiked(data?.liked_by_current_user ?? false)
       setLikeCount(data?.likes_count ?? 0)
       setComments(data?.comments ?? [])
+      setLoading(false)
+    }).catch(() => {
+      if (!mounted) return
+      setArticle(null)
       setLoading(false)
     })
     return () => {
@@ -138,22 +142,6 @@ export default function ArticleDetailPage({ articleId, initialAiSummary }: Props
     fetchSummary(article)
   }, [article, fetchSummary, initialAiSummary])
 
-  /*
-  // 実APIを呼び出す場合のuseEffectのコード例
-  useEffect(() => {
-    let mounted = true
-    setLoading(true)
-    getArticle(articleId).then((data) => {
-      if (!mounted) return
-      setArticle(data)
-      setLiked(data?.likedByMe ?? false)
-      setLikeCount(data?.likes ?? 0)
-      setComments(data?.comments ?? [])
-      setLoading(false)
-    })
-    return () => { mounted = false }
-  }, [articleId])
-  */
 
   // ---------- いいねトグル ----------
   const handleLike = () => {
@@ -181,8 +169,6 @@ export default function ArticleDetailPage({ articleId, initialAiSummary }: Props
       parent_comment_id: null,
       is_deleted: false,
       created_at: new Date().toISOString().slice(0, 10),
-      likes: 0,
-      replies: [],
     }
     setComments((prev) => [...prev, newComment])
     setCommentInput('')
@@ -243,12 +229,10 @@ export default function ArticleDetailPage({ articleId, initialAiSummary }: Props
             <span>公開: {article.published_at}</span>
             <span className={`${styles.badge} ${badgeClass}`}>{getStatusLabel(article.status)}</span>
             <div className={styles.headerActions}>
-              {article.meta.is_editable_by_current_user && (
-                // 画面作成時に差し替え: 編集画面への遷移
-                <button type="button" className={styles.btnOutline} aria-label="記事を編集">
-                  編集
-                </button>
-              )}
+              {/* API作成時に差し替え: 編集権限はバックエンドで判定 */}
+              <button type="button" className={styles.btnOutline} aria-label="記事を編集">
+                編集
+              </button>
               <button
                 className={`${styles.btnOutline} ${liked ? styles.btnLiked : ''}`}
                 onClick={handleLike}
@@ -294,14 +278,6 @@ export default function ArticleDetailPage({ articleId, initialAiSummary }: Props
               <p style={{ fontSize: '0.875rem', color: '#DC2626', marginBottom: '8px' }}>
                 ⚠️ {aiError}
               </p>
-              {/* フォールバック: モックデータの ai_summary があれば表示 */}
-              {article.ai_summary && (
-                <ul className={styles.aiSummaryList} style={{ opacity: 0.6 }}>
-                  {article.ai_summary.split('\n').filter(Boolean).map((point, i) => (
-                    <li key={i} className={styles.aiSummaryItem}>{point.replace(/^[・•]\s*/, '')}</li>
-                  ))}
-                </ul>
-              )}
               <button
                 type="button"
                 onClick={() => fetchSummary(article)}
@@ -337,10 +313,6 @@ export default function ArticleDetailPage({ articleId, initialAiSummary }: Props
                     <p className={styles.commentBody}>{comment.body}</p>
                     <div className={styles.commentFooter}>
                       <span>{comment.created_at}</span>
-                      {/* API作成時に差し替え: POST /api/v1/knowledge/{id}/comment-likes */}
-                      <button type="button" className={styles.commentLikeBtn} aria-label="いいね">
-                        ❤️ {comment.likes}
-                      </button>
                       {/* API作成時に差し替え: コメント返信フォームを表示する処理 */}
                       <button type="button" className={styles.commentLikeBtn} aria-label="返信">
                         返信
@@ -381,24 +353,7 @@ export default function ArticleDetailPage({ articleId, initialAiSummary }: Props
         <div className={styles.sidebarCard}>
           <h2 className={styles.sidebarTitle}>著者</h2>
           <p className={styles.authorName}>{article.author.name}</p>
-          {article.author.department && (
-            <p className={styles.authorMeta}>部署: {article.author.department}</p>
-          )}
         </div>
-
-        {/* 関連記事 */}
-        {article.related_articles.length > 0 && (
-          <div className={styles.sidebarCard}>
-            <h2 className={styles.sidebarTitle}>関連記事</h2>
-            <ul className={styles.relatedList}>
-              {article.related_articles.map((rel) => (
-                <li key={rel.id} className={styles.relatedItem}>
-                  <a href={`/article_detail?id=${rel.id}`}>{rel.title}</a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
 
         {/* 管理操作 */}
         <div className={styles.sidebarCard}>

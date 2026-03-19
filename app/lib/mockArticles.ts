@@ -8,8 +8,6 @@ export type Author = {
   name: string
   role: string
   is_active: boolean
-  /** 部署（表示用。実APIでは users テーブル拡張想定） */
-  department?: string
 }
 
 // ----- コメント -----
@@ -21,8 +19,6 @@ export type Comment = {
   parent_comment_id: string | null
   is_deleted: boolean
   created_at: string
-  likes: number
-  replies: Comment[]
 }
 
 // ----- 添付ファイル -----
@@ -39,13 +35,6 @@ export type Attachment = {
 export type Tag = {
   id: string
   name: string
-}
-
-// ----- 関連記事 -----
-export type RelatedArticle = {
-  id: string
-  title: string
-  published_at: string
 }
 
 // ----- 編集履歴 -----
@@ -75,13 +64,9 @@ export type ArticleDetail = {
   liked_by_current_user: boolean
   comments: Comment[]
   revisions: Revision[]
-  /** AI が自動生成した要約（箇条書き用に"\n"区切り） */
-  ai_summary: string
-  related_articles: RelatedArticle[]
   meta: {
     created_at: string
     updated_at: string
-    is_editable_by_current_user: boolean
   }
 }
 
@@ -102,7 +87,6 @@ export async function getMockArticle(id: string): Promise<ArticleDetail | null> 
         name: '西沢 太郎',
         role: 'admin',
         is_active: true,
-        department: '開発部',
       },
       attachments: [
         {
@@ -134,8 +118,6 @@ export async function getMockArticle(id: string): Promise<ArticleDetail | null> 
           parent_comment_id: null,
           is_deleted: false,
           created_at: '2024-11-03',
-          likes: 3,
-          replies: [],
         },
         {
           id: 'c9999999-aaaa-bbbb-cccc-ddddeeeeffff',
@@ -150,8 +132,6 @@ export async function getMockArticle(id: string): Promise<ArticleDetail | null> 
           parent_comment_id: null,
           is_deleted: false,
           created_at: '2024-11-04',
-          likes: 1,
-          replies: [],
         },
       ],
       revisions: [
@@ -170,16 +150,9 @@ export async function getMockArticle(id: string): Promise<ArticleDetail | null> 
           created_at: '2024-11-01T08:45:00Z',
         },
       ],
-      ai_summary: 'データ定義の確認が重要\nAPI認証と監査ログの実装を推奨\nOAuth2によるAPI認証を活用',
-      related_articles: [
-        { id: 'z1111111-2222-3333-4444-555566667777', title: '機械学習基礎まとめ', published_at: '2024-09-10' },
-        { id: 'z2222222-3333-4444-5555-666677778888', title: 'データ共有ポリシー', published_at: '2024-08-20' },
-        { id: 'z3333333-4444-5555-6666-777788889999', title: 'API設計ガイド', published_at: '2024-07-15' },
-      ],
       meta: {
         created_at: '2024-11-01T08:40:00Z',
         updated_at: '2024-11-03T11:50:00Z',
-        is_editable_by_current_user: true,
       },
     },
     {
@@ -194,7 +167,6 @@ export async function getMockArticle(id: string): Promise<ArticleDetail | null> 
         name: '田中 一郎',
         role: 'user',
         is_active: true,
-        department: '研究部',
       },
       attachments: [],
       tags: [
@@ -205,14 +177,9 @@ export async function getMockArticle(id: string): Promise<ArticleDetail | null> 
       liked_by_current_user: false,
       comments: [],
       revisions: [],
-      ai_summary: '機械学習の三大分類（教師あり・なし・強化学習）を解説\n各手法の代表的なアルゴリズムを紹介',
-      related_articles: [
-        { id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', title: '社内データ連携メモ', published_at: '2024-11-02' },
-      ],
       meta: {
         created_at: '2024-09-09T10:00:00Z',
         updated_at: '2024-09-09T10:00:00Z',
-        is_editable_by_current_user: false,
       },
     },
   ]
