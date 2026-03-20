@@ -27,7 +27,7 @@ type Props = {
 function ResultCard({ article }: { article: Article }) {
   return (
     <article className={styles.resultCard}>
-      <Link href={`/knowledge/${article.id}`} className={styles.resultCardLink}>
+      <Link href={`/article_detail?id=${encodeURIComponent(String(article.id))}`} className={styles.resultCardLink}>
         {article.title}
       </Link>
 

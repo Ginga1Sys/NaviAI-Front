@@ -47,7 +47,7 @@ type ArticleApiResponse = ListApiResponse<Article>
 function ArticleCard({ article }: { article: Article }) {
   return (
     <div className={styles.articleCard}>
-      <Link href={`/knowledge/${article.id}`} className={styles.articleCardLink}>
+      <Link href={`/article_detail?id=${encodeURIComponent(String(article.id))}`} className={styles.articleCardLink}>
         {article.title}
       </Link>
       {article.excerpt && (
