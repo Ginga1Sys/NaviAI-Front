@@ -57,8 +57,20 @@ export default function Sidebar({ activeItem = 'dashboard' }: Props) {
   const handleLogout = async () => {
     try {
       const refreshToken = localStorage.getItem('refreshToken')
-      if (refreshToken) {
-        await fetcher('/api/v1/auth/logout', {
+      const currentUserJson = localStorage.getItem('currentUser')
+      let username: string | null = null
+
+      if (currentUserJson) {
+        try {
+          const currentUser = JSON.parse(currentUserJson) as { username?: string }
+          username = typeof currentUser.username === 'string' ? currentUser.username : null
+        } catch {
+          username = null
+        }
+      }
+
+      if (refreshToken && username) {
+        await fetcher(`/api/v1/auth/logout?username=${encodeURIComponent(username)}`, {
           method: 'POST',
           body: JSON.stringify({ refreshToken }),
         })
