@@ -1,0 +1,282 @@
+"use client"
+
+import React, { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import Sidebar from "./Sidebar"
+import fetcher from "../lib/fetcher"
+import { type Article, type ListApiResponse, normalizeListResponse } from "../lib/types"
+import styles from "../styles/dashboard.module.css"
+
+// ──────────────────────────────────────────────
+// 型定義
+// ──────────────────────────────────────────────
+
+type SummaryData = {
+  totalPosts?: number
+  weeklyPosts?: number
+  pendingApprovals?: number
+}
+
+type ActivityDayItem = {
+  date: string
+  posts: number
+  comments: number
+  likes: number
+}
+
+type ActivityResponse = {
+  range?: string
+  from?: string
+  to?: string
+  items?: ActivityDayItem[]
+}
+
+type WeeklyActivityTotals = {
+  posts: number
+  comments: number
+  likes: number
+}
+
+type ArticleApiResponse = ListApiResponse<Article>
+
+// ──────────────────────────────────────────────
+// サブコンポーネント: 記事カード
+// ──────────────────────────────────────────────
+
+function ArticleCard({ article }: { article: Article }) {
+  return (
+    <div className={styles.articleCard}>
+      <Link href={`/article_detail?id=${encodeURIComponent(String(article.id))}`} className={styles.articleCardLink}>
+        {article.title}
+      </Link>
+      {article.excerpt && (
+        <p className={styles.articleCardExcerpt}>{article.excerpt}</p>
+      )}
+      <div className={styles.articleCardMeta}>
+        {article.author && <span>作成者: {article.author}</span>}
+        {article.publishedAt && (
+          <span>{new Date(article.publishedAt).toLocaleDateString("ja-JP")}</span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ──────────────────────────────────────────────
+// メインコンポーネント: Dashboard
+// ──────────────────────────────────────────────
+
+export default function Dashboard() {
+  const router = useRouter()
+  const [authChecked, setAuthChecked] = useState(false)
+
+  // 認証ガード: トークン未存在の場合は /login へリダイレクト
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      router.replace('/login')
+      return
+    }
+    setAuthChecked(true)
+  }, [router])
+
+  // 記事データ
+  const [recommendedArticle, setRecommendedArticle] = useState<Article | null>(null)
+  const [latestArticles, setLatestArticles] = useState<Article[]>([])
+  const [articlesLoading, setArticlesLoading] = useState(true)
+  const [articlesError, setArticlesError] = useState<string | null>(null)
+
+  // サマリーデータ
+  const [summary, setSummary] = useState<SummaryData | null>(null)
+  const [weeklyActivity, setWeeklyActivity] = useState<WeeklyActivityTotals | null>(null)
+  const [summaryLoading, setSummaryLoading] = useState(true)
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  // 管理者判定（localStorage から currentUser を読み取り）
+  useEffect(() => {
+    try {
+      const userJson = localStorage.getItem('currentUser')
+      if (userJson) {
+        const user = JSON.parse(userJson)
+        setIsAdmin(
+          !!(
+            user?.isAdmin ||
+            user?.admin ||
+            user?.username === 'admin' ||
+            user?.email === 'admin@naviai.com' ||
+            (user?.roles ?? []).includes('ADMIN') ||
+            (user?.roles ?? []).includes('ROLE_ADMIN')
+          )
+        )
+      }
+    } catch {}
+  }, [])
+
+  // 記事取得
+  useEffect(() => {
+    let cancelled = false
+    async function loadArticles() {
+      try {
+        const [latestRes, recommendedRes] = await Promise.all([
+          fetcher<ArticleApiResponse>("/api/v1/knowledge?filter=latest&size=3"),
+          fetcher<ArticleApiResponse>("/api/v1/knowledge?filter=recommended&size=1"),
+        ])
+        if (cancelled) return
+        const recommendedArr = normalizeListResponse(recommendedRes)
+        setRecommendedArticle(recommendedArr[0] ?? null)
+        setLatestArticles(normalizeListResponse(latestRes).slice(0, 3))
+      } catch {
+        if (!cancelled) setArticlesError("記事の取得に失敗しました。")
+      } finally {
+        if (!cancelled) setArticlesLoading(false)
+      }
+    }
+    loadArticles()
+    return () => { cancelled = true }
+  }, [])
+
+  // サマリー取得
+  useEffect(() => {
+    let cancelled = false
+    async function loadSummary() {
+      try {
+        const toDate = new Date()
+        const fromDate = new Date(toDate)
+        fromDate.setDate(fromDate.getDate() - 6)
+        const toStr = toDate.toISOString().slice(0, 10)
+        const fromStr = fromDate.toISOString().slice(0, 10)
+
+        const [summaryRes, activityRes] = await Promise.all([
+          fetcher<SummaryData>("/api/v1/dashboard"),
+          fetcher<ActivityResponse>(`/api/v1/dashboard/activity?from=${fromStr}&to=${toStr}`),
+        ])
+
+        if (cancelled) return
+
+        setSummary(summaryRes)
+        const totals = (activityRes.items ?? []).reduce(
+          (acc, item) => {
+            acc.posts += item.posts ?? 0
+            acc.comments += item.comments ?? 0
+            acc.likes += item.likes ?? 0
+            return acc
+          },
+          { posts: 0, comments: 0, likes: 0 }
+        )
+        setWeeklyActivity(totals)
+      } catch {
+        // サマリー取得失敗はサイレント
+      } finally {
+        if (!cancelled) setSummaryLoading(false)
+      }
+    }
+    loadSummary()
+    return () => { cancelled = true }
+  }, [])
+
+  if (!authChecked) return null
+
+  return (
+    <div className={styles.container}>
+
+      {/* ── 左ナビ（共通 Sidebar コンポーネント） ── */}
+      <Sidebar activeItem="dashboard" />
+
+      {/* ── コンテンツエリア（main + 右サイドバー） ── */}
+      <div className={styles.contentArea}>
+      <main className={styles.main} id="main-content">
+        <div className={styles.pageHeader}>
+          <h1 className={styles.pageTitle}>ダッシュボード</h1>
+        </div>
+
+        {/* クイック操作ボタン */}
+        <div className={styles.quickActions}>
+          <Link
+            href="/search_list?type=new&limit=20"
+            className={styles.quickActionBtn}
+          >
+            新着記事
+          </Link>
+          <Link
+            href="/search_list?type=recommended&limit=10"
+            className={styles.quickActionBtn}
+          >
+            おすすめ記事
+          </Link>
+        </div>
+
+        {/* おすすめ記事（1件・上段固定） */}
+        <section aria-labelledby="section-recommended">
+          <h2 className={styles.sectionTitle} id="section-recommended">おすすめ記事</h2>
+          {articlesLoading && <p className={styles.loadingText}>記事を読み込み中...</p>}
+          {articlesError && <p className={styles.errorText}>{articlesError}</p>}
+          {!articlesLoading && !articlesError && (
+            recommendedArticle
+              ? <ArticleCard article={recommendedArticle} />
+              : <p className={styles.loadingText}>記事がありません。</p>
+          )}
+        </section>
+
+        {/* 新着記事（最大3件・下段） */}
+        <section aria-labelledby="section-latest">
+          <h2 className={styles.sectionTitle} id="section-latest">新着記事</h2>
+          {articlesLoading && <p className={styles.loadingText}>記事を読み込み中...</p>}
+          {articlesError && <p className={styles.errorText}>{articlesError}</p>}
+          {!articlesLoading && !articlesError && (
+            latestArticles.length > 0
+              ? latestArticles.map((a) => <ArticleCard key={a.id} article={a} />)
+              : <p className={styles.loadingText}>記事がありません。</p>
+          )}
+        </section>
+      </main>
+
+      {/* ── 右サイドバー ── */}
+      <aside className={styles.right} aria-label="サマリーウィジェット">
+
+        {/* 承認待ち（管理者のみ） */}
+        {isAdmin && (
+          <div className={styles.sidebarCard}>
+            <h2 className={styles.sidebarTitle}>承認待ち</h2>
+            {summaryLoading
+              ? <p className={styles.loadingText}>読み込み中...</p>
+              : <Link href="/admin/pending" className={styles.pendingCount} style={{ textDecoration: "none" }}>
+                  {summary?.pendingApprovals ?? "—"}
+                  <span className={styles.pendingUnit}>　件</span>
+                </Link>
+            }
+          </div>
+        )}
+
+        {/* 週次アクティビティ（管理者のみ） */}
+        {isAdmin && (
+          <div className={styles.sidebarCard}>
+            <h2 className={styles.sidebarTitle}>週次アクティビティ</h2>
+            {summaryLoading
+              ? <p className={styles.loadingText}>読み込み中...</p>
+              : (
+                <ul className={styles.statList}>
+                  <li className={styles.statItem}>
+                    <span>新着</span>
+                    <span className={styles.statValue}>{weeklyActivity?.posts ?? "—"}</span>
+                  </li>
+                  <li className={styles.statItem}>
+                    <span>コメント</span>
+                    <span className={styles.statValue}>{weeklyActivity?.comments ?? "—"}</span>
+                  </li>
+                  <li className={styles.statItem}>
+                    <span>いいね</span>
+                    <span className={styles.statValue}>{weeklyActivity?.likes ?? "—"}</span>
+                  </li>
+                </ul>
+              )
+            }
+          </div>
+        )}
+
+      </aside>
+      </div>
+    </div>
+  )
+}
+

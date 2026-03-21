@@ -4,20 +4,20 @@ import React, { useId, useState } from "react"
 import styles from "../pages/login/login.module.css"
 
 type LoginData = {
-  identifier: string
+  email: string
   password: string
 }
 
 type Props = {
-  defaultIdentifier?: string
+  defaultEmail?: string
   loading?: boolean
   errorMessage?: string
   onSubmit?: (data: LoginData) => Promise<void> | void
 }
 
-export default function LoginForm({ defaultIdentifier = "", loading = false, errorMessage = "", onSubmit }: Props) {
+export default function LoginForm({ defaultEmail = "", loading = false, errorMessage = "", onSubmit }: Props) {
   const idPrefix = useId()
-  const [identifier, setIdentifier] = useState(defaultIdentifier)
+  const [email, setEmail] = useState(defaultEmail)
   const [password, setPassword] = useState("")
   const [localLoading, setLocalLoading] = useState(false)
   const [serverError, setServerError] = useState<string | null>(errorMessage || null)
@@ -25,18 +25,18 @@ export default function LoginForm({ defaultIdentifier = "", loading = false, err
 
   const submitting = loading || localLoading
 
-  const [fieldErrors, setFieldErrors] = useState<{ identifier?: string; password?: string }>({})
+  const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({})
 
   function validate(): boolean {
-    const errs: { identifier?: string; password?: string } = {}
-    const id = identifier.trim()
+    const errs: { email?: string; password?: string } = {}
+    const id = email.trim()
     const pw = password
 
     if (!id) {
-      errs.identifier = "必須項目です。"
-    } else if (id.includes("@")) {
+      errs.email = "必須項目です。"
+    } else {
       const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      if (!emailRe.test(id)) errs.identifier = "有効なメールアドレスを入力してください。"
+      if (!emailRe.test(id)) errs.email = "有効なメールアドレスを入力してください。"
     }
 
     if (!pw) {
@@ -57,7 +57,7 @@ export default function LoginForm({ defaultIdentifier = "", loading = false, err
     setLocalLoading(true)
     try {
       if (onSubmit) {
-        await onSubmit({ identifier, password })
+        await onSubmit({ email, password })
       }
     } catch (err: any) {
       setServerError(err?.message || "ログインに失敗しました。")
@@ -69,22 +69,22 @@ export default function LoginForm({ defaultIdentifier = "", loading = false, err
   return (
     <form onSubmit={handleSubmit} aria-live="polite" noValidate className={styles.form}>
       <div className={styles.field}>
-        <label className={styles.label} htmlFor={`${idPrefix}-identifier`}>メールアドレス または ユーザー名</label>
+        <label className={styles.label} htmlFor={`${idPrefix}-email`}>メールアドレス</label>
         <input
           className={styles.input}
-          id={`${idPrefix}-identifier`}
-          name="identifier"
-          type="text"
-          value={identifier}
-          onChange={(e) => { setIdentifier(e.target.value); setFieldErrors((s) => ({ ...s, identifier: undefined })) }}
+          id={`${idPrefix}-email`}
+          name="email"
+          type="email"
+          value={email}
+          onChange={(e) => { setEmail(e.target.value); setFieldErrors((s) => ({ ...s, email: undefined })) }}
           required
-          aria-invalid={!!fieldErrors.identifier}
-          aria-describedby={fieldErrors.identifier ? `${idPrefix}-identifier-error` : undefined}
-          autoComplete="username"
+          aria-invalid={!!fieldErrors.email}
+          aria-describedby={fieldErrors.email ? `${idPrefix}-email-error` : undefined}
+          autoComplete="email"
         />
-        {fieldErrors.identifier && (
-          <div id={`${idPrefix}-identifier-error`} role="alert" className={styles.fieldError}>
-            {fieldErrors.identifier}
+        {fieldErrors.email && (
+          <div id={`${idPrefix}-email-error`} role="alert" className={styles.fieldError}>
+            {fieldErrors.email}
           </div>
         )}
       </div>
