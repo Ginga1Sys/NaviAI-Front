@@ -23,7 +23,7 @@ export default function MyPostItem({ post }: { post: Post }) {
   return (
     <article className={styles.postCard}>
       <div className={styles.postContent}>
-        <a href="#" className={styles.postTitle}>{post.title}</a>
+        <a href={`/article_detail?id=${post.id}`} className={styles.postTitle}>{post.title}</a>
         <div className={styles.postMeta}>
           <span>{post.date}</span>
           <span className={`${styles.badge} ${getStatusBadge(post.status)}`}>
